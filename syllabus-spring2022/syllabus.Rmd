@@ -152,7 +152,7 @@ The homework assignments are almost entirely empirical, with each assignment foc
 
 The assignments are due (as PDFs submitted through Canvas) on the Friday of the week in which we complete each module. These dates are listed below:
 
-  - Homework 1, January 21st
+  - Homework 1, January 28th
   - Homework 2, February 18th
   - Homework 3, March 18th
   - Homework 4, April 8th
@@ -167,7 +167,7 @@ We do not have a final exam in this class. Instead, we have a final project that
 
 This section is just to highlight the most important dates on which an assignment is due. Late assignments will receive an automatic 2% reduction for each day the assignment is turned in after the due date.
 
-  - **January 21**: Homework 1
+  - **January 28**: Homework 1
   - **February 18**: Homework 2
   - **March 18**: Homework 3
   - **April 8**: Homework 4
