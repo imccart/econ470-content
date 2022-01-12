@@ -93,118 +93,12 @@ name: welcome
 <html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
 
 ---
-class: clear
+# Motivating question
 
-Does wealth improve health?
+**Does health care spending improve health?**
 
----
-# Health and Health Care
-
-</br>
-.center[
-  ![](https://media.giphy.com/media/1xK1QRqHENTTW/giphy.gif)
-]
-
----
-# Health and Health Care
-
-We've made *major* improvements in life expectancy (and many other measures of health) across the world
-
-- Poverty reduction
-- Technology development and innovation
-- Technology diffusion and adoption
-- Access to better services, including health care
-
-
----
-# Evidence of better health
-
-```{r life-exp, eval=FALSE}
-library(gapminder)
-gapminder %>%
-  group_by(year) %>%
-  summarize(lifeExp = median(lifeExp),
-            gdpMed = median(gdpPercap)) %>%
-  ggplot(aes(year,lifeExp)) + geom_line(alpha = 1/3) + theme_bw() +
-    labs(x = "Year",
-         y = "Life Expectancy (years)",
-         title = "Median life expectancy across the world")
-
-```
-.plot-callout[
-```{r life-exp-callout, ref.label="life-exp", fig.callout=TRUE}
-```
-]
-
-
----
-# Evidence of better health
-
-```{r life-exp-full-output, ref.label="life-exp", fig.callout=TRUE}
-```
-
-
----
-# GDP and Health
-
-```{r lifexp-gdp, eval=FALSE}
-library(gapminder)
-ggplot(data = gapminder, mapping = aes(x = gdpPercap, y = lifeExp)) + 
-  geom_point(size = 1) + theme_bw() + scale_x_continuous(label = comma) +
-  labs(x = "GDP Per Capita ($US)",
-       y = "Life Expectancy (years)",
-       title = "Life expectancy and GDP")
-```
-.plot-callout[
-```{r lifexp-gdp-callout, ref.label="lifexp-gdp", fig.callout=TRUE}
-```
-]
-
-
----
-# GDP and Health
-
-```{r lifexp-full-output, ref.label="lifexp-gdp", fig.callout=TRUE}
-```
-
-
----
-# GDP and Health over Time
-
-```{r gganim1, message=FALSE, warning=FALSE, include=FALSE}
-anim1 <- ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop)) +
-  geom_point(alpha = 0.5, show.legend = FALSE) +
-  scale_colour_manual(values = country_colors) +
-  scale_size(range = c(2, 12)) +
-  scale_x_log10() +
-  facet_wrap(~continent) +
-  labs(title = 'Year: {frame_time}', x = 'Log GDP Per Capita ($US)', y = 'Life Expectancy (years)') +
-  transition_time(year) +
-  ease_aes('linear')
-
-anim_save("anim1.gif",anim1,
-          path=here("00-introduction/pics/"))
-```
-
-.center[
-  ![:scale 900px](pics/anim1.gif)
-]
-
----
-# What does this mean?
-
-- Pretty clear relationship between wealth and health (at least by some measures)
-- How does this relationship emerge? What are the "mechanisms"?
-
---
-- Classify these into two areas:
-  - Health behaviors and related things like education
-  - Health care consumption
-  
-
---
-- Does health care spending improve health?
-
+???
+Let's motivate the course with this simple question...does health care spending improve our health?
 
 ---
 # Spending and Health
@@ -235,6 +129,9 @@ ggplot(data = (dartmouth.data %>% filter(Year==2015)),
 ```
 
 
+???
+This shows a positive relationship between health care spending and mortality. So health care spending is actually negatively correlated with health. What does this mean?
+
 ---
 # Spending and Health
 
@@ -246,6 +143,8 @@ ggplot(data = (dartmouth.data %>% filter(Year==2015)),
 ```
 ]
 
+???
+Sicker people are more likely to need health care. So in this simple graph, we're actually picking up the fact that sicker people are more likely to die. In econometrics, this problem goes by a few names, such as endogeneity or selection.
 
 ---
 # Goals of this course.
@@ -274,16 +173,13 @@ name: syllabus
 ---
 # Why this course?
 
-1. Working with data is hard
+1. Major problems that need solutions
 
-2. Health and health care are constantly changing
+2. Need good, convincing empirical work for policy
 
-3. $3.5 trillion, 17.9% of GDP, $10,739 per person
+3. Working with data is hard, particularly health care data
 
---
-
-> *"Nobody knew health care could be so complicated"*
-> `r tufte::quote_footer('--- Donald Trump')`
+4. Your work should be transparent and reproducible
 
 ---
 # Structure
@@ -292,7 +188,7 @@ name: syllabus
 
 - *Methods* for causal inference
 
-  - Selection on observables (matching, propensity scores)
+  - Selection on observables (regression, re-weighting, matching, propensity scores)
   
   - Instrumental variables
   
@@ -427,7 +323,7 @@ Just use the cloud!
 - We have our own virtual computer via AWS
 - This computer has all the space you need and the data are already available
 - Downside: the computer will be "on" during designated times only
-- Details of this will be on Canvas shortly
+- Details of this are on Canvas
 
 
 <!-- New Section -->
@@ -458,10 +354,10 @@ name: git_rstudio
 ---
 # Setting things up
 
-Now we're going to clone a GitHub repository (repo) using RStudio.
+Now we're going to clone a GitHub repository (repo) using RStudio. The video below is from Grant McDermott's class.
 
 .center[
-  ![:scale 800px](pics/GitHub_RStudio_Demo.gif)
+  ![:scale 800px](https://raw.githack.com/uo-ec607/lectures/master/02-git/02-Git.html#15)
 ]
 
 
@@ -490,6 +386,12 @@ Until you are a Git(Hub) expert...
 
 3. See http://happygitwithr.com for instructions on linking your local repo with a new upstream remote
 
+
+
+---
+# Working with AWS
+
+Let's do this live!
 
 
 <!-- New Section -->
