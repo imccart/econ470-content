@@ -516,7 +516,7 @@ starwars %&gt;%
 ---
 # 1) dplyr::filter()
 
-Common to use `filter()` to check or remove missing vlaues 
+Common to use `filter()` to check or remove missing values
 
 ```r
 starwars %&gt;% 
@@ -536,7 +536,10 @@ starwars %&gt;%
 ## #   vehicles &lt;list&gt;, starships &lt;list&gt;
 ```
 
---
+---
+count: false
+
+# 1) dplyr::filter()
 
 To remove missing observations, use `filter(!is.na(height))`. Also try the `drop_na()` function from `tidyr`.
 
@@ -735,6 +738,10 @@ Note the "scoped" variants of `mutate()` that work on a subset of variables:
 - `mutate_at()` affects named or selected variables
 - `mutate_if()` affects variables that meet some criteria (e.g. are numeric)
 
+--
+
+These have since been replaced with `across()`. So you would use `mutate(across())` instead.
+
 ---
 # 5) dplyr::summarise() with group_by()
 
@@ -771,21 +778,28 @@ starwars %&gt;%
 
 --
 
+Again, supersceded by `across()`.
+
+---
+count: false
+
+# 5) dplyr::summarise()
+
 
 ```r
-starwars %&gt;% group_by(species, gender) %&gt;% summarise_if(is.numeric, list(avg=mean), na.rm=T) %&gt;% head(5)
+starwars %&gt;% group_by(species, gender) %&gt;% summarise(across(where(is.numeric), mean, na.rm=TRUE)) %&gt;% head(5)
 ```
 
 ```
 ## # A tibble: 5 × 5
 ## # Groups:   species [5]
-##   species  gender    height_avg mass_avg birth_year_avg
-##   &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;          &lt;dbl&gt;
-## 1 Aleena   masculine         79       15            NaN
-## 2 Besalisk masculine        198      102            NaN
-## 3 Cerean   masculine        198       82             92
-## 4 Chagrian masculine        196      NaN            NaN
-## 5 Clawdite feminine         168       55            NaN
+##   species  gender    height  mass birth_year
+##   &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
+## 1 Aleena   masculine     79    15        NaN
+## 2 Besalisk masculine    198   102        NaN
+## 3 Cerean   masculine    198    82         92
+## 4 Chagrian masculine    196   NaN        NaN
+## 5 Clawdite feminine     168    55        NaN
 ```
 
 ---

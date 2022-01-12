@@ -503,13 +503,16 @@ starwars %>%
 ---
 # 1) dplyr::filter()
 
-Common to use `filter()` to check or remove missing vlaues 
+Common to use `filter()` to check or remove missing values
 ```{r filter3}
 starwars %>% 
   filter(is.na(height)) %>% head(5)
 ```
 
---
+---
+count: false
+
+# 1) dplyr::filter()
 
 To remove missing observations, use `filter(!is.na(height))`. Also try the `drop_na()` function from `tidyr`.
 
@@ -612,6 +615,10 @@ Note the "scoped" variants of `mutate()` that work on a subset of variables:
 - `mutate_at()` affects named or selected variables
 - `mutate_if()` affects variables that meet some criteria (e.g. are numeric)
 
+--
+
+These have since been replaced with `across()`. So you would use `mutate(across())` instead.
+
 ---
 # 5) dplyr::summarise() with group_by()
 
@@ -635,8 +642,15 @@ starwars %>%
 
 --
 
+Again, supersceded by `across()`.
+
+---
+count: false
+
+# 5) dplyr::summarise()
+
 ```{r, summ4}
-starwars %>% group_by(species, gender) %>% summarise_if(is.numeric, list(avg=mean), na.rm=T) %>% head(5)
+starwars %>% group_by(species, gender) %>% summarise(across(where(is.numeric), mean, na.rm=TRUE)) %>% head(5)
 ```
 
 ---
