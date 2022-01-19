@@ -344,9 +344,9 @@ name: git_rstudio
 
 Now we're going to clone a GitHub repository (repo) using RStudio. The video below is from Grant McDermott's class.
 
-
+&lt;center&gt;
 &lt;iframe width="600" height="350" src="https://raw.githack.com/uo-ec607/lectures/master/02-git/02-Git.html#15" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen&gt;&lt;/iframe&gt;
-
+&lt;/center&gt;
 
 ---
 # Some common mistakes for windows users
@@ -786,19 +786,18 @@ count: false
 
 
 ```r
-starwars %&gt;% group_by(species, gender) %&gt;% summarise(across(where(is.numeric), mean, na.rm=TRUE)) %&gt;% head(5)
+starwars %&gt;% group_by(species) %&gt;% summarise(across(where(is.numeric), mean, na.rm=TRUE)) %&gt;% head(5)
 ```
 
 ```
-## # A tibble: 5 × 5
-## # Groups:   species [5]
-##   species  gender    height  mass birth_year
-##   &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
-## 1 Aleena   masculine     79    15        NaN
-## 2 Besalisk masculine    198   102        NaN
-## 3 Cerean   masculine    198    82         92
-## 4 Chagrian masculine    196   NaN        NaN
-## 5 Clawdite feminine     168    55        NaN
+## # A tibble: 5 × 4
+##   species  height  mass birth_year
+##   &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
+## 1 Aleena       79    15        NaN
+## 2 Besalisk    198   102        NaN
+## 3 Cerean      198    82         92
+## 4 Chagrian    196   NaN        NaN
+## 5 Clawdite    168    55        NaN
 ```
 
 ---
@@ -929,7 +928,7 @@ left_join(flights, planes, ## Not renaming "year" to "year_built" this time
 What is "year.x" vs "year.y"?
 
 ---
-# Other dplyr goodies
+# Other dplyr functions
 
 `pull()`: Extract a column from a data frame as a vector or scalar.
 - e.g. `starwars %&gt;% filter(gender=="female") %&gt;% pull(height)`
@@ -943,12 +942,17 @@ What is "year.x" vs "year.y"?
 
 
 ---
-# Other dplyr goodies
+# Other dplyr functions
 
 There is also a whole class of [window functions](https://cran.r-project.org/web/packages/dplyr/vignettes/window-functions.html) for getting leads and lags, ranking, creating cumulative aggregates, etc.
 
 See `vignette("window-functions")` for more.
 
+---
+# Other summaries
+
+- Summary statistics can get cumbersome with `summarize()`
+- Quick summary of selected variables: `sumtable()` from the `vtable` package
 
 ---
 # Some dplyr tips
@@ -1210,7 +1214,7 @@ gdp_u %&gt;% mutate(date = ymd(date))
 ```
 
 ---
-# Other tidyr goodies
+# Other tidyr functions
 
 - `drop_na()` to drop missing values among specified columns
 
@@ -1294,9 +1298,9 @@ Let's work with the [Medicare Advantage GitHub repository](https://github.com/im
 
 
 ---
-# Download the data
+# Access the data
 
-First step is to download the raw data that we'll be using.
+First step is to download the raw data that we'll be using, or work in AWS:
  - [Monthly Enrollment](https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/MCRAdvPartDEnrolData/Monthly-Enrollment-by-Contract-Plan-State-County.html)
  - [Plan Characteristics](https://www.cms.gov/Medicare/Prescription-Drug-Coverage/PrescriptionDrugCovGenIn/index)
  - [Service Areas](https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/MCRAdvPartDEnrolData/MA-Contract-Service-Area-by-State-County.html)
@@ -1312,7 +1316,6 @@ Lots more out there, but this is enough for now.
 for (y in 2006:2015) {
   monthlist=get(paste0("monthlist_",y))
   for (m in monthlist) {
-    
     ## Basic contract/plan information
 *   ma.path=paste0("...CPSC_Contract_Info_",y,"_",m,".csv")
     contract.info=read_csv(ma.path,
@@ -1323,18 +1326,12 @@ for (y in 2006:2015) {
                            col_types = cols(
                              contractid = col_character(),
                              planid = col_double(),
-                             org_type = col_character(),
-                             plan_type = col_character(),
-                             partd = col_character(),
-                             snp = col_character(),
-                             eghp = col_character(),
-                             org_name = col_character(),
-                             org_marketing_name = col_character(),
-                             plan_name = col_character(),
-                             parent_org = col_character(),
-                             contract_date = col_character()
+                             ...
                            ))
 ```
+
+???
+This imports the contract information (name, insurer, plan identifiers) into an object `contract.info` from the filepath in `ma.path`.
 
 ---
 # 1) Contract/enrollment info
@@ -1349,6 +1346,9 @@ for (y in 2006:2015) {
       filter(id_count==1) %&gt;%
       select(-id_count)
 ```
+
+??? 
+This reduces the data to unique contract and plan IDs. Note the `row_number()` to assign a running count for each pair.
 
 ---
 # 1) Contract/enrollment info
@@ -1370,6 +1370,9 @@ for (y in 2006:2015) {
                          ),na="*")
 ```
 
+???
+This imports the enrollment data (count of enrollees) into an object `enroll.info` from the filepath `ma.path`
+
 ---
 # 1) Contract/enrollment info
 
@@ -1379,9 +1382,12 @@ for (y in 2006:2015) {
       left_join(enroll.info, by=c("contractid", "planid")) %&gt;%
       mutate(month=as.numeric(m),year=y)
     
-    assign(paste0("plan.data.",y,".",m),plan.data)
+    assign(paste0("plan.data.",m),plan.data)
   }
 ```
+
+???
+This merges the contract details with enrollments. Note that this is for each year and month. `assign()` is not good coding practice but I'm not sure of a clearly better way in this case.
 
 ---
 # 1) Contract/enrollment info
@@ -1397,6 +1403,10 @@ for (y in 2006:2015) {
                      plan.data.09, plan.data.10, plan.data.11, plan.data.12)
   }
 ```
+
+???
+This creates a final `plan.month` object consisting of the appended (or stacked) monthly `plan.data` objects.
+
 ---
 # 1) Contract/enrollment info
 
@@ -1417,6 +1427,9 @@ for (y in 2006:2015) {
     fill(org_type,org_name,org_marketing_name,parent_org)
 ```
 
+???
+Some cleanup by filling in missing values using "nearby" values
+
 ---
 # 1) Contract/enrollment info
 
@@ -1436,12 +1449,31 @@ for (y in 2006:2015) {
     
   write_rds(plan.year,paste0(path.data.final,"/ma_data_",y,".rds"))
 }
+```
 
+???
+Summarize monthly data to the yearly level, and save data object as `ma_data_` (year) at filepath `path.data.final`
+
+---
+# 1) Contract/enrollment info
+
+```r
 full.ma.data &lt;- readRDS(paste0(path.data.final,"/ma_data_2006.rds"))
 for (y in 2007:2015) {
   full.ma.data &lt;- rbind(full.ma.data, paste0(path.data.final,"/ma_data_",y,".rds"))
 }
 ```
+
+???
+Appends yearly data into one large file, `full.ma.data`
+
+---
+# All together now
+
+Now let's move to AWS and try some of this together.
+1. Clone repository
+2. Create your own repository
+3. `git remote set-url origin NEW_URL` (where NEW_URL is your own repository)
 
 ---
 # Number of plans available
@@ -1459,6 +1491,7 @@ full.ma.data %&gt;% group_by(fips, year) %&gt;% select(fips, year) %&gt;% summar
   ) + scale_y_continuous(labels=comma) +
   theme_bw()
 ```
+
 .plot-callout[
 &lt;img src="00-introduction_files/figure-html/all-plans-callout-1.png" style="display: block; margin: auto;" /&gt;
 ]
