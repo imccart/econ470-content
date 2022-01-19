@@ -1347,7 +1347,7 @@ This imports the contract information (name, insurer, plan identifiers) into an 
       select(-id_count)
 ```
 
-??? 
+???
 This reduces the data to unique contract and plan IDs. Note the `row_number()` to assign a running count for each pair.
 
 ---
@@ -1465,6 +1465,7 @@ for (y in 2007:2015) {
 ```
 
 ???
+
 Appends yearly data into one large file, `full.ma.data`
 
 ---
@@ -1473,7 +1474,27 @@ Appends yearly data into one large file, `full.ma.data`
 Now let's move to AWS and try some of this together.
 1. Clone repository
 2. Create your own repository
-3. `git remote set-url origin NEW_URL` (where NEW_URL is your own repository)
+3. Remove remote, `git remote rm origin`
+4. Set new remote `git remote add origin NEW_URL` (where NEW_URL is your own repository)
+5. git push origin HEAD:master
+6. git push --set-upstream origin master
+
+---
+# All together now
+
+Next, you'll need to make some changes to get things to work:
+
+1. Create new `paths.R` script with:
+
+```r
+path.code="R_code"
+path.data.ma="/data/medicare-advantage"
+path.data.ffs="/data/medicare-ffs"
+```
+
+2. Update file paths
+
+3. Remove "path.data.final" and rely on `here()` package
 
 ---
 # Number of plans available
@@ -1515,11 +1536,8 @@ full.ma.data %&gt;%
   summarize(plan_count=n()) %&gt;%
   ggplot(aes(x=as.factor(year),y=plan_count)) + 
   stat_summary(fun.y="mean", geom="bar") +
-  labs(
-    x="Year",
-    y="Number of Plans",
-    title="Average Number of Plans per County"
-  ) + scale_y_continuous(labels=comma) +
+  labs(x="Year", y="Number of Plans", title="Average Number of Plans per County") +
+  scale_y_continuous(labels=comma) +
   theme_bw()
 ```
 ]
@@ -1541,11 +1559,8 @@ full.ma.data %&gt;%
   summarize(plan_count=n()) %&gt;%
   ggplot(aes(x=as.factor(year),y=plan_count)) + 
   stat_summary(fun.y="mean", geom="bar") +
-  labs(
-    x="Year",
-    y="Number of Plans",
-    title="Average Number of Plans per County"
-  ) + scale_y_continuous(labels=comma) +
+  labs(x="Year", y="Number of Plans", title="Average Number of Plans per County") +
+  scale_y_continuous(labels=comma) +
   theme_bw()
 ```
 ]
@@ -1571,11 +1586,8 @@ full.ma.data %&gt;%
   summarize(plan_count=n()) %&gt;%
   ggplot(aes(x=as.factor(year),y=plan_count)) + 
   stat_summary(fun.y="mean", geom="bar") +
-  labs(
-    x="Year",
-    y="Number of Plans",
-    title="Average Number of Plans per County"
-  ) + scale_y_continuous(labels=comma) +
+  labs(x="Year", y="Number of Plans", title="Average Number of Plans per County") +
+  scale_y_continuous(labels=comma) +
   theme_bw()
 ```
 ]
@@ -1603,11 +1615,8 @@ full.ma.data %&gt;%
   summarize(plan_count=n()) %&gt;%
   ggplot(aes(x=as.factor(year),y=plan_count)) + 
   stat_summary(fun.y="mean", geom="bar") +
-  labs(
-    x="Year",
-    y="Number of Plans",
-    title="Average Number of Plans per County"
-  ) + scale_y_continuous(labels=comma) +
+  labs(x="Year", y="Number of Plans", title="Average Number of Plans per County") +
+  scale_y_continuous(labels=comma) +
   theme_bw()
 ```
 ]
