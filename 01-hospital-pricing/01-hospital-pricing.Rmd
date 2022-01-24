@@ -73,15 +73,15 @@ xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
 
 1. [Hospital Pricing](#hospital_pricing)
 
-2. [Potential Outcomes Framework](#potential_outcomes)
+2. [HCRIS Data](#hcris)
 
-3. [Selection on Observables](#selection_observables)
+3. [Potential Outcomes Framework](#potential_outcomes)
 
-4. [Methods](#methods)
+4. [Selection on Observables](#selection_observables)
 
-5. [HCRIS Data](#hcris)
+5. [Methods](#methods)
 
-6. [Pricing and Pay for Performance](#price_pfp)
+6. [Pricing and Profit Status](#price_profit)
 
 <!-- New Section -->
 ---
@@ -151,7 +151,7 @@ Not clear what exactly is negotiated...
 
 ---
 # Hospital prices in real life
-We'll get into the real data in a bit, but for now...a few facts:
+A few empirical facts:
 
 1. Hospital services are expensive
 
@@ -171,6 +171,141 @@ We'll get into the real data in a bit, but for now...a few facts:
 ]
 
 <div class="smalltext">Source: <a href="https://healthcarepricingproject.org/">Health Care Pricing Project</a></div>
+
+
+
+<!-- New Section -->
+---
+class: inverse, center, middle
+name: hcris
+
+# Understanding HCRIS Data
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# What is HCRIS?
+Healthcare Cost Report Information System ('cost reports')
+- Nursing Homes (SNFs)
+- Hospice
+- Home Health Agencies
+- Hospitals 
+
+---
+# Hospital Cost Reports
+
+.center[
+  ![:scale 800px](pics/HCRIS.png)
+]
+
+---
+# The Data
+
+Let's work with the [HCRIS GitHub repository](https://github.com/imccart/HCRIS). But forming the dataset is up to you this time.
+
+--
+.center[
+  ![:scale 700px](https://media.giphy.com/media/26DNdV3b6dqn1jzR6/giphy.gif)
+]
+
+
+---
+# The Data
+```{r eval=T, include=F}
+hcris.data <- read_rds(here("data/HCRIS_Data.rds"))
+```
+
+```{r hospital-count, eval=FALSE, warning=FALSE}
+hcris.data %>% 
+  ggplot(aes(x=as.factor(year))) + 
+  geom_bar() +
+  labs(
+    x="Year",
+    y="Number of Hospitals",
+    title="Number of Hospitals per Year"
+  ) + theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+.plot-callout[
+```{r hospital-count-callout, ref.label="hospital-count", fig.callout=TRUE, warning=FALSE}
+```
+]
+
+
+---
+# Number of hospitals
+
+```{r hospital-count-output, ref.label="hospital-count", fig.callout=TRUE, warning=FALSE}
+```
+
+---
+# Estimating hospital prices
+```{r price-calc}
+hcris.data <- hcris.data %>%
+  mutate( discount_factor = 1-tot_discounts/tot_charges,
+          price_num = (ip_charges + icu_charges + ancillary_charges)*discount_factor - tot_mcare_payment,
+          price_denom = tot_discharges - mcare_discharges,
+          price = price_num/price_denom)
+```
+
+---
+# Estimating hospital prices
+
+.left-code[
+```{r price-plot1, fig.show="hide"}
+hcris.data %>% group_by(year) %>% 
+  filter(price_denom>10, !is.na(price_denom), 
+         price_num>0, !is.na(price_num)) %>%  
+  select(price, year) %>% 
+  summarize(mean_price=mean(price, na.rm=TRUE)) %>%
+  ggplot(aes(x=as.factor(year), y=mean_price)) + 
+  geom_line(aes(group=1)) +
+  labs(
+    x="Year",
+    y="Average Hospital Price",
+    title="Hospital Prices per Year"
+  ) + scale_y_continuous(labels=comma) +
+  theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+]
+
+.right-plot[
+![](`r knitr::fig_chunk("price-plot1","png")`)
+]
+
+
+---
+# Estimating hospital prices
+
+.left-code[
+```{r price-plot2, fig.show="hide"}
+hcris.data %>% group_by(year) %>% 
+  filter(price_denom>100, !is.na(price_denom), 
+         price_num>0, !is.na(price_num),
+         price<100000) %>%   #<<
+  select(price, year) %>% 
+  summarize(mean_price=mean(price, na.rm=TRUE)) %>%
+  ggplot(aes(x=as.factor(year), y=mean_price)) + 
+  geom_line(aes(group=1)) +
+  labs(
+    x="Year",
+    y="Average Hospital Price",
+    title="Hospital Prices per Year"
+  ) + scale_y_continuous(labels=comma) +
+  theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust=1))
+```
+]
+
+.right-plot[
+![](`r knitr::fig_chunk("price-plot2","png")`)
+]
+
+
+
+
+
+
 
 
 
@@ -904,140 +1039,13 @@ mean(pred1_alt-pred0_alt)
 ]
 
 
-<!-- New Section -->
----
-class: inverse, center, middle
-name: hcris
-
-# Understanding HCRIS Data
-
-<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
-
-
----
-# What is HCRIS?
-Healthcare Cost Report Information System ('cost reports')
-- Nursing Homes (SNFs)
-- Hospice
-- Home Health Agencies
-- Hospitals 
-
----
-# Hospital Cost Reports
-
-.center[
-  ![:scale 800px](pics/HCRIS.png)
-]
-
----
-# The Data
-
-Let's work with the [HCRIS GitHub repository](https://github.com/imccart/HCRIS). But forming the dataset is up to you this time.
-
---
-.center[
-  ![:scale 700px](https://media.giphy.com/media/26DNdV3b6dqn1jzR6/giphy.gif)
-]
-
-
----
-# The Data
-```{r eval=T, include=F}
-hcris.data <- read_rds(here("data/HCRIS_Data.rds"))
-```
-
-```{r hospital-count, eval=FALSE, warning=FALSE}
-hcris.data %>% 
-  ggplot(aes(x=as.factor(year))) + 
-  geom_bar() +
-  labs(
-    x="Year",
-    y="Number of Hospitals",
-    title="Number of Hospitals per Year"
-  ) + theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, hjust=1))
-```
-.plot-callout[
-```{r hospital-count-callout, ref.label="hospital-count", fig.callout=TRUE, warning=FALSE}
-```
-]
-
-
----
-# Number of hospitals
-
-```{r hospital-count-output, ref.label="hospital-count", fig.callout=TRUE, warning=FALSE}
-```
-
----
-# Estimating hospital prices
-```{r price-calc}
-hcris.data <- hcris.data %>%
-  mutate( discount_factor = 1-tot_discounts/tot_charges,
-          price_num = (ip_charges + icu_charges + ancillary_charges)*discount_factor - tot_mcare_payment,
-          price_denom = tot_discharges - mcare_discharges,
-          price = price_num/price_denom)
-```
-
----
-# Estimating hospital prices
-
-.left-code[
-```{r price-plot1, fig.show="hide"}
-hcris.data %>% group_by(year) %>% 
-  filter(price_denom>10, !is.na(price_denom), 
-         price_num>0, !is.na(price_num)) %>%  
-  select(price, year) %>% 
-  summarize(mean_price=mean(price, na.rm=TRUE)) %>%
-  ggplot(aes(x=as.factor(year), y=mean_price)) + 
-  geom_line(aes(group=1)) +
-  labs(
-    x="Year",
-    y="Average Hospital Price",
-    title="Hospital Prices per Year"
-  ) + scale_y_continuous(labels=comma) +
-  theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust=1))
-```
-]
-
-.right-plot[
-![](`r knitr::fig_chunk("price-plot1","png")`)
-]
-
-
----
-# Estimating hospital prices
-
-.left-code[
-```{r price-plot2, fig.show="hide"}
-hcris.data %>% group_by(year) %>% 
-  filter(price_denom>100, !is.na(price_denom), 
-         price_num>0, !is.na(price_num),
-         price<100000) %>%   #<<
-  select(price, year) %>% 
-  summarize(mean_price=mean(price, na.rm=TRUE)) %>%
-  ggplot(aes(x=as.factor(year), y=mean_price)) + 
-  geom_line(aes(group=1)) +
-  labs(
-    x="Year",
-    y="Average Hospital Price",
-    title="Hospital Prices per Year"
-  ) + scale_y_continuous(labels=comma) +
-  theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust=1))
-```
-]
-
-.right-plot[
-![](`r knitr::fig_chunk("price-plot2","png")`)
-]
-
 
 <!-- New Section -->
 ---
 class: inverse, center, middle
-name: price_pfp
+name: price_profit
 
-# Pricing and Pay for Performance
+# Pricing and Hospital Profit Status
 
 <html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
 
