@@ -6,6 +6,7 @@ date: Econ 470 & HLTH 470 #"`r format(Sys.time(), '%d %B %Y')`"
 header-includes: 
   - \usepackage{graphicx}
   - \usepackage{amsmath}
+  - \usepackage{mathtools}
 output:
 #  html_document: default
   xaringan::moon_reader:
@@ -60,7 +61,7 @@ knitr::opts_hooks$set(fig.callout = function(options) {
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
-               scales, plotly, gganimate, cobalt, MatchIt, ggthemes, here)
+               scales, plotly, gganimate, cobalt, MatchIt, ggthemes, here, latex2exp)
 set.seed(12345)
 ```
 
@@ -77,11 +78,13 @@ xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
 
 3. [Potential Outcomes Framework](#potential_outcomes)
 
-4. [Selection on Observables](#selection_observables)
+4. [Average Treatment Effects](#ate)
 
-5. [Methods](#methods)
+5. [Selection on Observables](#selection_observables)
 
-6. [Pricing and Profit Status](#price_profit)
+6. [Regression and Weighting](#methods)
+
+7. [Pricing and Profit Status](#price_profit)
 
 <!-- New Section -->
 ---
@@ -306,9 +309,6 @@ hcris.data %>% group_by(year) %>%
 
 
 
-
-
-
 <!-- New Section -->
 ---
 class: inverse, center, middle
@@ -320,51 +320,154 @@ name: potential_outcomes
 
 
 ---
-# What is a "Potential Outcome"
-.pull-left[
-![:scale 420px](pics/EmoryPicture.jpg)
+# Causal Inference and Potential Outcomes
 
-Y(1)= $75,000
-
-]
-
-.pull-right[
-![:scale 370px](pics/UNTPicture.jpg)
-
-Y(0)= $60,000
-]
-
---
-<html><div style='float:left'></div><hr color='black' size=1px width=1100px></html>
-Treatment effect =Y(1)-Y(0)= $15,000
+- **Goal:** Estimate effect of some policy or program
+- Key building block for causal inference is the idea of **potential outcomes**
 
 ---
-# What is a "Potential Outcome"
+# Some notation
+
+**Treatment** $D_{i}$:
+
+$$D_{i}=\begin{cases}
+ 1 \text{ with treatment} \\
+ 0 \text{ without treatment}
+\end{cases}$$
+
+---
+count: false
+
+# Some notation
+
+**Outcome** $Y_{i}$: observed outcome for observation $i$
+
+---
+count: false
+
+# Some notation
+
+**Potential outcomes**
+
+- $Y_{1i}$ is the potential outcome for unit $i$ with treatment
+- $Y_{0i}$ is the potential outcome for unit $i$ without treatment
+
+---
+count: false
+
+# Some notation
+
+**Observed outcome**
+
+$$Y_{i}=Y_{1i} \times D_{i} + Y_{0i} \times (1-D_{i})$$
+or
+
+$$Y_{i}=\begin{cases}
+Y_{1i} \text{ if } D_{i}=1 \\
+Y_{0i} \text{ if } D_{i}=0
+\end{cases}$$
+
+
+.footnote[
+Assumes **SUTVA** (stable unit treatment value assumption)...no interference across units
+]
+
+---
+# Example of "Potential Outcomes"
+
 .pull-left[
 ![:scale 420px](pics/EmoryPicture.jpg)
 
-Y(1)= $75,000
+$Y_{1}$= <span>&#36;</span>75,000
 
 ]
 
 .pull-right[
 ![:scale 370px](pics/UNTPicture.jpg)
 
-Y(0)= ?
+$Y_{0}$= <span>&#36;</span>60,000
 ]
 
---
-<html><div style='float:left'></div><hr color='black' size=1px width=1100px></html>
-Treatment effect =Y(1)-Y(0)= ?
+
+---
+count: false 
+
+# Example of "Potential Outcomes"
+.pull-left[
+![:scale 420px](pics/EmoryPicture.jpg)
+
+$Y_{1}$= <span>&#36;</span>75,000
+
+]
+
+.pull-right[
+![:scale 370px](pics/UNTPicture.jpg)
+
+$Y_{0}$= <span>&#36;</span>60,000
+]
+
+
+Earnings due to Emory = $Y_{1}-Y_{0}$ = <span>&#36;</span>15,000
+
+---
+# Example of "Potential Outcomes"
+
+.pull-left[
+![:scale 420px](pics/EmoryPicture.jpg)
+
+$Y_{1}$= <span>&#36;</span>75,000
+
+]
+
+.pull-right[
+![:scale 370px](pics/UNTPicture.jpg)
+
+$Y_{0}$= ?
+]
+
+
+---
+count: false
+
+# Example of "Potential Outcomes"
+
+.pull-left[
+![:scale 420px](pics/EmoryPicture.jpg)
+
+$Y_{1}$= <span>&#36;</span>75,000
+
+]
+
+.pull-right[
+![:scale 370px](pics/UNTPicture.jpg)
+
+$Y_{0}$= ?
+]
+
+
+Earnings due to Emory = $Y_{1}-Y_{0}$ = ?
 
 ---
 # Do we ever observe the potential outcomes?
+
 .center[
   ![:scale 700px](https://media.giphy.com/media/zZeCRfPyXi9UI/giphy.gif)
 ]
 
 --
-Without a time machine...hard to get *individual* treatment effects.
+Without a time machine...hard (impossible?) to get *individual* effects.
+
+---
+class: inverse, center, middle
+name: ate
+
+# Average Treatment Effects
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+
+
 
 ---
 # *Average* Treatment Effect
@@ -439,15 +542,67 @@ mean.x0 <- mean(x0$xplust)
 x1 <- ate.data %>% filter(t==1) %>% select(xplust)
 mean.x1 <- mean(x1$xplust)
 
-plot3 + annotate("text",x=mean.x0, y=-2, label="E[Y(1)]", size=5) +
-  annotate("text", x=mean.x1, y=-2, label="E[Y(0)]", size=5)
+plot3 + annotate("text",x=mean.x0, y=-2, label=TeX(r"($E\[Y_{1}\])"), size=5, parse=TRUE) +
+  annotate("text", x=mean.x1, y=-2, label=TeX(r"($E\[Y_{0}\])"), size=5, parse=TRUE)
 ```
 
 ```{r ate-plot4-output, ref.label="ate-plot4", fig.callout=TRUE, warning=FALSE}
 ```
 
 --
-$$ATE = E[Y(1)-Y(0)]$$
+$$ATE = E[Y_{1}-Y_{0}]$$
+
+---
+# More formally
+
+- **ATE**: $\delta_{ATE} = E[ Y_{1} - Y_{0}]$
+
+- **ATT**: $\delta_{ATT} = E[ Y_{1} - Y_{0} | D=1]$
+
+- **ATU**: $\delta_{ATU} = E[ Y_{1} - Y_{0} | D=0]$
+
+---
+# Easy to write, hard to estimate
+
+- Assume (for simplicity) constant effects, $Y_{1i}=Y_{0i} + \delta$
+
+- Since we don't observe $Y_{0}$ and $Y_{1}$, we have to use the observed outcomes, $Y_{i}$
+
+$$\begin{align}
+E[Y_{i} | D_{i}=1] &- E[Y_{i} | D_{i}=0] \\
+=& E[Y_{1i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \\
+=& \delta + E[Y_{0i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \\
+=& \text{ATE } + \text{ Selection Bias}
+\end{align}$$
+
+---
+count: false
+
+# Easy to write, hard to estimate
+
+- In words, the potential outcome without treatment, $Y_{0i}$, is different between those that ultimately did and did not receive treatment.
+
+- e.g., treated group was going to be better on average even without treatment (higher wages, healthier, etc.)
+
+---
+# Alleviating Selection Bias
+
+- Easiest way to think of this is with random assignment
+
+- In this case, treatment assignment doesn't tell us anything about $Y_{0i}$
+
+- So, when $D_{i}$ is randomly assigned, $$E[Y_{0i}|D_{i}=1] = E[Y_{0i}|D_{i}=0],$$ such that $$E[Y_{i}|D_{i}=1] - E[Y_{i} | D_{i}=0] = \delta_{ATE} = \delta_{ATT} = \delta_{ATU}$$
+
+---
+# In practice
+
+- Nothing more than averages
+
+- **Estimand**: $$\delta_{ATE} = E[Y_{1} - Y_{0}] = E[Y | D=1] - E[Y | D=0]$$
+
+- **Estimate**: $$\hat{\delta}_{ATE} = \frac{1}{N_{1}} \sum_{D_{i}=1} Y_{i} - \frac{1}{N_{0}} \sum_{D_{i}=0} Y_{i},$$ where $N_{1}$ is number of treated and $N_{0}$ is number untreated (control)
+
+- Inference/hypothesis testing with standard two-sample t-test
 
 <!-- New Section -->
 ---

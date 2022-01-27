@@ -60,11 +60,13 @@ class: center, middle, inverse, title-slide
 
 3. [Potential Outcomes Framework](#potential_outcomes)
 
-4. [Selection on Observables](#selection_observables)
+4. [Average Treatment Effects](#ate)
 
-5. [Methods](#methods)
+5. [Selection on Observables](#selection_observables)
 
-6. [Pricing and Profit Status](#price_profit)
+6. [Regression and Weighting](#methods)
+
+7. [Pricing and Profit Status](#price_profit)
 
 &lt;!-- New Section --&gt;
 ---
@@ -289,9 +291,6 @@ hcris.data %&gt;% group_by(year) %&gt;%
 
 
 
-
-
-
 &lt;!-- New Section --&gt;
 ---
 class: inverse, center, middle
@@ -303,51 +302,154 @@ name: potential_outcomes
 
 
 ---
-# What is a "Potential Outcome"
-.pull-left[
-![:scale 420px](pics/EmoryPicture.jpg)
+# Causal Inference and Potential Outcomes
 
-Y(1)= $75,000
-
-]
-
-.pull-right[
-![:scale 370px](pics/UNTPicture.jpg)
-
-Y(0)= $60,000
-]
-
---
-&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='black' size=1px width=1100px&gt;&lt;/html&gt;
-Treatment effect =Y(1)-Y(0)= $15,000
+- **Goal:** Estimate effect of some policy or program
+- Key building block for causal inference is the idea of **potential outcomes**
 
 ---
-# What is a "Potential Outcome"
+# Some notation
+
+**Treatment** `\(D_{i}\)`:
+
+`$$D_{i}=\begin{cases}
+ 1 \text{ with treatment} \\
+ 0 \text{ without treatment}
+\end{cases}$$`
+
+---
+count: false
+
+# Some notation
+
+**Outcome** `\(Y_{i}\)`: observed outcome for observation `\(i\)`
+
+---
+count: false
+
+# Some notation
+
+**Potential outcomes**
+
+- `\(Y_{1i}\)` is the potential outcome for unit `\(i\)` with treatment
+- `\(Y_{0i}\)` is the potential outcome for unit `\(i\)` without treatment
+
+---
+count: false
+
+# Some notation
+
+**Observed outcome**
+
+`$$Y_{i}=Y_{1i} \times D_{i} + Y_{0i} \times (1-D_{i})$$`
+or
+
+`$$Y_{i}=\begin{cases}
+Y_{1i} \text{ if } D_{i}=1 \\
+Y_{0i} \text{ if } D_{i}=0
+\end{cases}$$`
+
+
+.footnote[
+Assumes **SUTVA** (stable unit treatment value assumption)...no interference across units
+]
+
+---
+# Example of "Potential Outcomes"
+
 .pull-left[
 ![:scale 420px](pics/EmoryPicture.jpg)
 
-Y(1)= $75,000
+`\(Y_{1}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;75,000
 
 ]
 
 .pull-right[
 ![:scale 370px](pics/UNTPicture.jpg)
 
-Y(0)= ?
+`\(Y_{0}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;60,000
 ]
 
---
-&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='black' size=1px width=1100px&gt;&lt;/html&gt;
-Treatment effect =Y(1)-Y(0)= ?
+
+---
+count: false 
+
+# Example of "Potential Outcomes"
+.pull-left[
+![:scale 420px](pics/EmoryPicture.jpg)
+
+`\(Y_{1}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;75,000
+
+]
+
+.pull-right[
+![:scale 370px](pics/UNTPicture.jpg)
+
+`\(Y_{0}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;60,000
+]
+
+
+Earnings due to Emory = `\(Y_{1}-Y_{0}\)` = &lt;span&gt;&amp;#36;&lt;/span&gt;15,000
+
+---
+# Example of "Potential Outcomes"
+
+.pull-left[
+![:scale 420px](pics/EmoryPicture.jpg)
+
+`\(Y_{1}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;75,000
+
+]
+
+.pull-right[
+![:scale 370px](pics/UNTPicture.jpg)
+
+`\(Y_{0}\)`= ?
+]
+
+
+---
+count: false
+
+# Example of "Potential Outcomes"
+
+.pull-left[
+![:scale 420px](pics/EmoryPicture.jpg)
+
+`\(Y_{1}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;75,000
+
+]
+
+.pull-right[
+![:scale 370px](pics/UNTPicture.jpg)
+
+`\(Y_{0}\)`= ?
+]
+
+
+Earnings due to Emory = `\(Y_{1}-Y_{0}\)` = ?
 
 ---
 # Do we ever observe the potential outcomes?
+
 .center[
   ![:scale 700px](https://media.giphy.com/media/zZeCRfPyXi9UI/giphy.gif)
 ]
 
 --
-Without a time machine...hard to get *individual* treatment effects.
+Without a time machine...hard (impossible?) to get *individual* effects.
+
+---
+class: inverse, center, middle
+name: ate
+
+# Average Treatment Effects
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+
+
 
 ---
 # *Average* Treatment Effect
@@ -378,7 +480,59 @@ Without a time machine...hard to get *individual* treatment effects.
 &lt;img src="01-hospital-pricing_files/figure-html/ate-plot4-output-1.png" style="display: block; margin: auto;" /&gt;
 
 --
-`$$ATE = E[Y(1)-Y(0)]$$`
+`$$ATE = E[Y_{1}-Y_{0}]$$`
+
+---
+# More formally
+
+- **ATE**: `\(\delta_{ATE} = E[ Y_{1} - Y_{0}]\)`
+
+- **ATT**: `\(\delta_{ATT} = E[ Y_{1} - Y_{0} | D=1]\)`
+
+- **ATU**: `\(\delta_{ATU} = E[ Y_{1} - Y_{0} | D=0]\)`
+
+---
+# Easy to write, hard to estimate
+
+- Assume (for simplicity) constant effects, `\(Y_{1i}=Y_{0i} + \delta\)`
+
+- Since we don't observe `\(Y_{0}\)` and `\(Y_{1}\)`, we have to use the observed outcomes, `\(Y_{i}\)`
+
+`$$\begin{align}
+E[Y_{i} | D_{i}=1] &amp;- E[Y_{i} | D_{i}=0] \\
+=&amp; E[Y_{1i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \\
+=&amp; \delta + E[Y_{0i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \\
+=&amp; \text{ATE } + \text{ Selection Bias}
+\end{align}$$`
+
+---
+count: false
+
+# Easy to write, hard to estimate
+
+- In words, the potential outcome without treatment, `\(Y_{0i}\)`, is different between those that ultimately did and did not receive treatment.
+
+- e.g., treated group was going to be better on average even without treatment (higher wages, healthier, etc.)
+
+---
+# Alleviating Selection Bias
+
+- Easiest way to think of this is with random assignment
+
+- In this case, treatment assignment doesn't tell us anything about `\(Y_{0i}\)`
+
+- So, when `\(D_{i}\)` is randomly assigned, `$$E[Y_{0i}|D_{i}=1] = E[Y_{0i}|D_{i}=0],$$` such that `$$E[Y_{i}|D_{i}=1] - E[Y_{i} | D_{i}=0] = \delta_{ATE} = \delta_{ATT} = \delta_{ATU}$$`
+
+---
+# In practice
+
+- Nothing more than averages
+
+- **Estimand**: `$$\delta_{ATE} = E[Y_{1} - Y_{0}] = E[Y | D=1] - E[Y | D=0]$$`
+
+- **Estimate**: `$$\hat{\delta}_{ATE} = \frac{1}{N_{1}} \sum_{D_{i}=1} Y_{i} - \frac{1}{N_{0}} \sum_{D_{i}=0} Y_{i},$$` where `\(N_{1}\)` is number of treated and `\(N_{0}\)` is number untreated (control)
+
+- Inference/hypothesis testing with standard two-sample t-test
 
 &lt;!-- New Section --&gt;
 ---
