@@ -58,13 +58,13 @@ class: center, middle, inverse, title-slide
 
 2. [HCRIS Data](#hcris)
 
-3. [Potential Outcomes Framework](#potential_outcomes)
+3. [Causal Inference and Potential Outcomes](#causal)
 
 4. [Average Treatment Effects](#ate)
 
-5. [Selection on Observables](#selection_observables)
+5. [Selection Bias](#selection)
 
-6. [Regression and Weighting](#methods)
+6. [Matching and Weighting](#methods)
 
 7. [Pricing and Profit Status](#price_profit)
 
@@ -294,35 +294,68 @@ hcris.data %&gt;% group_by(year) %&gt;%
 &lt;!-- New Section --&gt;
 ---
 class: inverse, center, middle
-name: potential_outcomes
+name: causal
 
-# Potential Outcomes Framework
+# Causal Inference and Potential Outcomes
 
 &lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
 
 
 ---
-# Causal Inference and Potential Outcomes
+# Why causal inference?
+
+
+
+
+
+
+
+&lt;img src="01-hospital-pricing_files/figure-html/dartmouth-output-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+count: false
+
+# Why causal inference?
+
+Another example: **What price should we charge for a night in a hotel?**
+
+--
+
+.pull-left[
+**Machine Learning**
+
+- Focuses on prediction
+- High prices are strongly correlated with higher sales
+- Increase prices to attract more people?
+
+]
+
+.pull-right[
+**Causal Inference**
+
+- Focuses on **counterfactuals**
+- What would sales look like if prices were higher?
+
+]
+
+---
+# Goal of Causal Inference
 
 - **Goal:** Estimate effect of some policy or program
+
 - Key building block for causal inference is the idea of **potential outcomes**
 
 ---
 # Some notation
 
-**Treatment** `\(D_{i}\)`:
+**Treatment** `\(D_{i}\)`
 
 `$$D_{i}=\begin{cases}
  1 \text{ with treatment} \\
  0 \text{ without treatment}
 \end{cases}$$`
 
----
-count: false
-
-# Some notation
-
-**Outcome** `\(Y_{i}\)`: observed outcome for observation `\(i\)`
 
 ---
 count: false
@@ -437,7 +470,15 @@ Earnings due to Emory = `\(Y_{1}-Y_{0}\)` = ?
 ]
 
 --
-Without a time machine...hard (impossible?) to get *individual* effects.
+Without a time machine...not possible to get *individual* effects.
+
+---
+# Fundamental Problem of Causal Inference
+
+- We don't observe the counterfactual outcome...what would have happened if a treated unit was actually untreated.
+
+- *ALL* attempts at causal inference represent some attempt at estimating the counterfactual outcome. We need an estimate for `\(Y_{0}\)` among those that were treated, and vice versa for `\(Y_{1}\)`.
+
 
 ---
 class: inverse, center, middle
@@ -448,11 +489,33 @@ name: ate
 &lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
 
 
+---
+# Different treatment effects
 
+Tend to focus on **averages**&lt;sup&gt;1&lt;/sup&gt;:
+
+- **ATE**: `\(\delta_{ATE} = E[ Y_{1} - Y_{0}]\)`
+
+- **ATT**: `\(\delta_{ATT} = E[ Y_{1} - Y_{0} | D=1]\)`
+
+- **ATU**: `\(\delta_{ATU} = E[ Y_{1} - Y_{0} | D=0]\)`
+
+
+.footnote[&lt;sup&gt;1&lt;/sup&gt; or similar measures such as medians or quantiles]
+
+---
+# Average Treatment Effects
+
+- **Estimand**: `$$\delta_{ATE} = E[Y_{1} - Y_{0}] = E[Y | D=1] - E[Y | D=0]$$`
+
+- **Estimate**: `$$\hat{\delta}_{ATE} = \frac{1}{N_{1}} \sum_{D_{i}=1} Y_{i} - \frac{1}{N_{0}} \sum_{D_{i}=0} Y_{i},$$` where `\(N_{1}\)` is number of treated and `\(N_{0}\)` is number untreated (control)
+
+- Inference/hypothesis testing with standard two-sample t-test
 
 
 ---
-# *Average* Treatment Effect
+# ATE in pictures
+
 
 
 
@@ -461,20 +524,26 @@ name: ate
 
 
 ---
-# *Average* Treatment Effect
+count: false
+
+# ATE in pictures
 
 
 &lt;img src="01-hospital-pricing_files/figure-html/ate-plot2-output-1.png" style="display: block; margin: auto;" /&gt;
 
 
 ---
-# *Average* Treatment Effect
+count: false
+
+# ATE in pictures
 
 &lt;img src="01-hospital-pricing_files/figure-html/ate-plot3-output-1.png" style="display: block; margin: auto;" /&gt;
 
 
 ---
-# *Average* Treatment Effect
+count: false
+
+# ATE in pictures
 
 
 &lt;img src="01-hospital-pricing_files/figure-html/ate-plot4-output-1.png" style="display: block; margin: auto;" /&gt;
@@ -482,17 +551,18 @@ name: ate
 --
 `$$ATE = E[Y_{1}-Y_{0}]$$`
 
+&lt;!-- New Section --&gt;
 ---
-# More formally
+class: inverse, center, middle
+name: selection
 
-- **ATE**: `\(\delta_{ATE} = E[ Y_{1} - Y_{0}]\)`
+# Selection Bias
 
-- **ATT**: `\(\delta_{ATT} = E[ Y_{1} - Y_{0} | D=1]\)`
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
 
-- **ATU**: `\(\delta_{ATU} = E[ Y_{1} - Y_{0} | D=0]\)`
 
 ---
-# Easy to write, hard to estimate
+# Selection bias
 
 - Assume (for simplicity) constant effects, `\(Y_{1i}=Y_{0i} + \delta\)`
 
@@ -508,97 +578,160 @@ E[Y_{i} | D_{i}=1] &amp;- E[Y_{i} | D_{i}=0] \\
 ---
 count: false
 
-# Easy to write, hard to estimate
+# Selection bias
+
+- Selection bias means `\(E[Y_{0i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \neq 0\)`
 
 - In words, the potential outcome without treatment, `\(Y_{0i}\)`, is different between those that ultimately did and did not receive treatment.
 
 - e.g., treated group was going to be better on average even without treatment (higher wages, healthier, etc.)
 
 ---
-# Alleviating Selection Bias
+count: false
 
-- Easiest way to think of this is with random assignment
+# Selection bias
+
+- How to "remove" selection bias?
+
+- How about random assignment?
 
 - In this case, treatment assignment doesn't tell us anything about `\(Y_{0i}\)`
 
-- So, when `\(D_{i}\)` is randomly assigned, `$$E[Y_{0i}|D_{i}=1] = E[Y_{0i}|D_{i}=0],$$` such that `$$E[Y_{i}|D_{i}=1] - E[Y_{i} | D_{i}=0] = \delta_{ATE} = \delta_{ATT} = \delta_{ATU}$$`
+`$$E[Y_{0i}|D_{i}=1] = E[Y_{0i}|D_{i}=0],$$` such that `$$E[Y_{i}|D_{i}=1] - E[Y_{i} | D_{i}=0] = \delta_{ATE} = \delta_{ATT} = \delta_{ATU}$$`
+
 
 ---
-# In practice
+count: false
 
-- Nothing more than averages
+# Selection bias
 
-- **Estimand**: `$$\delta_{ATE} = E[Y_{1} - Y_{0}] = E[Y | D=1] - E[Y | D=0]$$`
+- Without random assignment, there's a high probability that `$$E[Y_{0i}|D_{i}=1] \neq E[Y_{0i}|D_{i}=0]$$`
 
-- **Estimate**: `$$\hat{\delta}_{ATE} = \frac{1}{N_{1}} \sum_{D_{i}=1} Y_{i} - \frac{1}{N_{0}} \sum_{D_{i}=0} Y_{i},$$` where `\(N_{1}\)` is number of treated and `\(N_{0}\)` is number untreated (control)
+- i.e., outcomes without treatment are different for the treated group
 
-- Inference/hypothesis testing with standard two-sample t-test
-
-&lt;!-- New Section --&gt;
----
-class: inverse, center, middle
-name: selection_observables
-
-# Selection on Observables
-
-&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+- How can we "remove" the bias term?
 
 ---
-# Average Treatment Effect
-&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" /&gt;
+count: false
+
+# Selection bias
+
+- The field of causal inference is all about different strategies to remove selection bias
+
+- The first strategy (really, assumption) in this class: **selection on observables** or **conditional indpendence**
 
 ---
-# ...with Selection
+# Conditional independence
+
+- Example: Does having health insurance, `\(D_{i}=1\)`, improve your health relative to someone without health insurance, `\(D_{i}=0\)`?
+
+- `\(Y_{1i}\)` denotes health with insurance, and `\(Y_{0i}\)` health without insurance (these are **potential** outcomes)
+
+- In raw data, `\([Y_{i} | D_{i}=1] &gt; E[Y_{i} | D_{i}=0]\)`, but is that causal?
+
+---
+count: false
+
+# Conditional independence
+
+Some assumptions:
+
+- `\(Y_{0i}=\alpha + \eta_{i}\)`
+- `\(Y_{1i} - Y_{0i} = \delta\)`
+- There is some set of "controls", `\(x_{i}\)`, such that `\(\eta_{i} = \beta x_{i} + u_{i}\)` and `\(E[u_{i} | x_{i}]=0\)` (conditional independence assumption, or CIA)
+
+--
+
+`$$\begin{align}
+Y_{i} &amp;= Y_{1i} \times D_{i} + Y_{0i} \times (1-D_{i}) \\
+&amp;= \delta D_{i} + Y_{0i} D_{i} + Y_{0i} - Y_{0i} D_{i} \\
+&amp;= \delta D_{i} + \alpha + \eta_{i} \\
+&amp;= \delta D_{i} + \alpha + \beta x_{i} + u_{i}
+\end{align}$$`
 
 
+---
+# Selection in pictures
 &lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
-# ...with Selection
+count: false
+
+# Selection in pictures
 
 
 &lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-4-1.png" style="display: block; margin: auto;" /&gt;
 
+---
+count: false
+
+# Selection in pictures
+
+
+&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-5-1.png" style="display: block; margin: auto;" /&gt;
+
 
 ---
-# ...with Selection
+count: false
+
+# Selection in pictures
 
 
 &lt;img src="01-hospital-pricing_files/figure-html/ate-plot5-output-1.png" style="display: block; margin: auto;" /&gt;
 
 
 ---
-# ...with Selection
+count: false
+
+# Selection in pictures
+
 
 
 &lt;img src="01-hospital-pricing_files/figure-html/ate-plot6-output-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
-# Assumption 1: Selection on Observables
+count: false
+
+# Selection in pictures
+
+
 
 
 &lt;img src="01-hospital-pricing_files/figure-html/ate-plot7-output-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
-# Assumption 1: Selection on Observables
+count: false
+
+# Selection in pictures
+
 
 
 &lt;img src="01-hospital-pricing_files/figure-html/ate-plot8-output-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
+# Identifying causal effect
+
+Find covariates `\(X_{i}\)` such that the following assumptions are plausible:
+
+
+1. Selection on observables: `$$Y_{i}(1), Y_{i}(0) \perp\!\!\!\perp D_{i} | X_{i}$$`
+2. Common support: `$$0 &lt; \text{Pr}(D_{i}=1|X_{i}) &lt; 1$$`
+
+
+--
+
+
+Then we can use `\(X_{i}\)` to group observations and use expectations for control as the predicted counterfactuals among treated, and vice versa. 
+
+
+---
 # Assumption 1: Selection on Observables
 
-More formally:
-
---
-&lt;br&gt;
-&lt;br&gt;
-- `\(E[Y(1)|W,shape]=E[Y(1)|shape]\)`
-- `\(Y(1),Y(0) \perp\!\!\!\perp W | shape\)`
+`\(E[Y_{1}|D,X]=E[Y_{1}|X]\)`
 
 
 --
-&lt;br&gt;
+
 
 In words...nothing unobserved that determines treatment selection and affects your outcome of interest.
 
@@ -609,6 +742,8 @@ In words...nothing unobserved that determines treatment selection and affects yo
 &lt;img src="01-hospital-pricing_files/figure-html/ate-select-output-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
+count: false
+
 # Violation of Selection on Observables
 
 
@@ -619,63 +754,30 @@ In words...nothing unobserved that determines treatment selection and affects yo
 Someone of each type must be in both the treated and untreated groups
 
 --
-`$$0 &lt; \text{Pr}(W=1|X) &lt;1$$`
+`$$0 &lt; \text{Pr}(D=1|X) &lt;1$$`
 
 ---
 # Assumption 2: Common Support
-&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-5-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 # Violation of Common Support
 
 
-&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /&gt;
+
 
 &lt;!-- New Section --&gt;
 ---
 class: inverse, center, middle
 name: methods
 
-# Causal Inference with Observational Data
+# Matchmaking
 
 &lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
 
 
----
-# Fundamental Problem of Causal Inference
 
-Potential outcomes:
-- `\(Y_{i}(1)\)` for `\(W_{i}=1\)`
-- `\(Y_{i}(0)\)` for `\(W_{i}=0\)`
-
-
---
-&lt;br&gt;
-&lt;br&gt;
-
-Average treatment effect is `\(E[Y_{i}(1)-Y_{i}(0)]\)`, but: 
-- `\(E[Y_{i}|W_{i}=1] \neq E[Y_{i}(1)]\)`
-- `\(E[Y_{i}|W_{i}=0] \neq E[Y_{i}(0)]\)`
-
----
-# Fundamental Problem of Causal Inference
-
-- We don't observe the counterfactual outcome...what would have happened if a treated unit was actually untreated.
-
-- *ALL* attempts at causal inference represent some attempt at estimating the counterfactual outcome. We need an estimate for `\(E[Y_{i}(0)]\)` among those that were treated, and vice versa for `\(E[Y_{i}(1)]\)`.
-
-
----
-# Causal inference with observational data
-Solution for now: find covariates `\(X_{i}\)` such that the following assumptions are plausible: &lt;br&gt;
-
-1. Selection on observables: `$$Y_{i}(1), Y_{i}(0) \perp\!\!\!\perp W_{i} | X_{i}$$`
-2. Common support: `$$0 &lt; \text{Pr}(W_{i}=1|X_{i}) &lt; 1$$`
-
---
-&lt;br&gt;
-
-Then we can use `\(X_{i}\)` to group observations and use expectations for control as the predicted counterfactuals among treated, and vice versa. 
 
 ---
 # Causal inference with observational data
@@ -973,7 +1075,7 @@ summary(hcris.data$price)
 plot(density(hcris.data$price, na.rm=TRUE))
 ```
 
-&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
 ]
 
 .pull-right[
@@ -991,7 +1093,7 @@ summary(final.hcris$price)
 plot(density(final.hcris$price))
 ```
 
-&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-16-1.png" style="display: block; margin: auto;" /&gt;
 ]
 
 ---
@@ -1252,7 +1354,7 @@ love.plot(bal.tab(m.nn.ps, covs = lp.covs, treat = lp.vars$penalty),
 
 ---
 # 3. Weighting
-&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="01-hospital-pricing_files/figure-html/unnamed-chunk-18-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 # Results: Exact matching

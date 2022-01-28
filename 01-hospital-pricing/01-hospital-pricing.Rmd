@@ -76,13 +76,13 @@ xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
 
 2. [HCRIS Data](#hcris)
 
-3. [Potential Outcomes Framework](#potential_outcomes)
+3. [Causal Inference and Potential Outcomes](#causal)
 
 4. [Average Treatment Effects](#ate)
 
-5. [Selection on Observables](#selection_observables)
+5. [Selection Bias](#selection)
 
-6. [Regression and Weighting](#methods)
+6. [Matching and Weighting](#methods)
 
 7. [Pricing and Profit Status](#price_profit)
 
@@ -312,35 +312,79 @@ hcris.data %>% group_by(year) %>%
 <!-- New Section -->
 ---
 class: inverse, center, middle
-name: potential_outcomes
+name: causal
 
-# Potential Outcomes Framework
+# Causal Inference and Potential Outcomes
 
 <html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
 
 
 ---
-# Causal Inference and Potential Outcomes
+# Why causal inference?
+
+```{r include=FALSE}
+source(here("00-introduction/DartmouthAtlas.R"))
+```
+
+
+```{r dartmouth, eval=FALSE, warning=FALSE, include=FALSE}
+ggplot(data = (dartmouth.data %>% filter(Year==2015)), 
+       mapping = aes(x = Expenditures, y = Total_Mortality)) + 
+  geom_point(size = 1) + theme_bw() + scale_x_continuous(label = comma) +
+  geom_smooth(method="lm", se=FALSE, color="blue", size=1/2) +
+  labs(x = "Spending Per Capita ($US)",
+       y = "Mortality Rate",
+       title = "Mortality and Health Care Spending")
+```
+
+
+```{r dartmouth-output, ref.label="dartmouth", fig.callout=TRUE, warning=FALSE}
+```
+
+
+---
+count: false
+
+# Why causal inference?
+
+Another example: **What price should we charge for a night in a hotel?**
+
+--
+
+.pull-left[
+**Machine Learning**
+
+- Focuses on prediction
+- High prices are strongly correlated with higher sales
+- Increase prices to attract more people?
+
+]
+
+.pull-right[
+**Causal Inference**
+
+- Focuses on **counterfactuals**
+- What would sales look like if prices were higher?
+
+]
+
+---
+# Goal of Causal Inference
 
 - **Goal:** Estimate effect of some policy or program
+
 - Key building block for causal inference is the idea of **potential outcomes**
 
 ---
 # Some notation
 
-**Treatment** $D_{i}$:
+**Treatment** $D_{i}$
 
 $$D_{i}=\begin{cases}
  1 \text{ with treatment} \\
  0 \text{ without treatment}
 \end{cases}$$
 
----
-count: false
-
-# Some notation
-
-**Outcome** $Y_{i}$: observed outcome for observation $i$
 
 ---
 count: false
@@ -455,7 +499,15 @@ Earnings due to Emory = $Y_{1}-Y_{0}$ = ?
 ]
 
 --
-Without a time machine...hard (impossible?) to get *individual* effects.
+Without a time machine...not possible to get *individual* effects.
+
+---
+# Fundamental Problem of Causal Inference
+
+- We don't observe the counterfactual outcome...what would have happened if a treated unit was actually untreated.
+
+- *ALL* attempts at causal inference represent some attempt at estimating the counterfactual outcome. We need an estimate for $Y_{0}$ among those that were treated, and vice versa for $Y_{1}$.
+
 
 ---
 class: inverse, center, middle
@@ -466,11 +518,33 @@ name: ate
 <html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
 
 
+---
+# Different treatment effects
 
+Tend to focus on **averages**<sup>1</sup>:
+
+- **ATE**: $\delta_{ATE} = E[ Y_{1} - Y_{0}]$
+
+- **ATT**: $\delta_{ATT} = E[ Y_{1} - Y_{0} | D=1]$
+
+- **ATU**: $\delta_{ATU} = E[ Y_{1} - Y_{0} | D=0]$
+
+
+.footnote[<sup>1</sup> or similar measures such as medians or quantiles]
+
+---
+# Average Treatment Effects
+
+- **Estimand**: $$\delta_{ATE} = E[Y_{1} - Y_{0}] = E[Y | D=1] - E[Y | D=0]$$
+
+- **Estimate**: $$\hat{\delta}_{ATE} = \frac{1}{N_{1}} \sum_{D_{i}=1} Y_{i} - \frac{1}{N_{0}} \sum_{D_{i}=0} Y_{i},$$ where $N_{1}$ is number of treated and $N_{0}$ is number untreated (control)
+
+- Inference/hypothesis testing with standard two-sample t-test
 
 
 ---
-# *Average* Treatment Effect
+# ATE in pictures
+
 ```{r ate_data, echo=F, eval=T}
 ate.data <- tibble(
   x=rnorm(18,5,1),
@@ -503,7 +577,9 @@ ggplot(ate.data, aes(x_disp,y)) +
 
 
 ---
-# *Average* Treatment Effect
+count: false
+
+# ATE in pictures
 ```{r ate-plot2, echo=F, include=F}
 ggplot(ate.data, aes(x_disp,y)) + 
   geom_point(aes(shape=z, size=5, color=t), alpha=1/2) + 
@@ -519,7 +595,9 @@ ggplot(ate.data, aes(x_disp,y)) +
 
 
 ---
-# *Average* Treatment Effect
+count: false
+
+# ATE in pictures
 ```{r ate-plot3, echo=F, include=F}
 plot3 <- ggplot(ate.data, aes(xplust,y)) + 
   geom_point(aes(shape=z, size=5, color=t), alpha=1/2) + 
@@ -535,7 +613,9 @@ plot3
 
 
 ---
-# *Average* Treatment Effect
+count: false
+
+# ATE in pictures
 ```{r ate-plot4, echo=F, include=F}
 x0 <- ate.data %>% filter(t==-1) %>% select(xplust)
 mean.x0 <- mean(x0$xplust)
@@ -552,17 +632,18 @@ plot3 + annotate("text",x=mean.x0, y=-2, label=TeX(r"($E\[Y_{1}\])"), size=5, pa
 --
 $$ATE = E[Y_{1}-Y_{0}]$$
 
+<!-- New Section -->
 ---
-# More formally
+class: inverse, center, middle
+name: selection
 
-- **ATE**: $\delta_{ATE} = E[ Y_{1} - Y_{0}]$
+# Selection Bias
 
-- **ATT**: $\delta_{ATT} = E[ Y_{1} - Y_{0} | D=1]$
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
 
-- **ATU**: $\delta_{ATU} = E[ Y_{1} - Y_{0} | D=0]$
 
 ---
-# Easy to write, hard to estimate
+# Selection bias
 
 - Assume (for simplicity) constant effects, $Y_{1i}=Y_{0i} + \delta$
 
@@ -578,48 +659,87 @@ E[Y_{i} | D_{i}=1] &- E[Y_{i} | D_{i}=0] \\
 ---
 count: false
 
-# Easy to write, hard to estimate
+# Selection bias
+
+- Selection bias means $E[Y_{0i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \neq 0$
 
 - In words, the potential outcome without treatment, $Y_{0i}$, is different between those that ultimately did and did not receive treatment.
 
 - e.g., treated group was going to be better on average even without treatment (higher wages, healthier, etc.)
 
 ---
-# Alleviating Selection Bias
+count: false
 
-- Easiest way to think of this is with random assignment
+# Selection bias
+
+- How to "remove" selection bias?
+
+- How about random assignment?
 
 - In this case, treatment assignment doesn't tell us anything about $Y_{0i}$
 
-- So, when $D_{i}$ is randomly assigned, $$E[Y_{0i}|D_{i}=1] = E[Y_{0i}|D_{i}=0],$$ such that $$E[Y_{i}|D_{i}=1] - E[Y_{i} | D_{i}=0] = \delta_{ATE} = \delta_{ATT} = \delta_{ATU}$$
+$$E[Y_{0i}|D_{i}=1] = E[Y_{0i}|D_{i}=0],$$ such that $$E[Y_{i}|D_{i}=1] - E[Y_{i} | D_{i}=0] = \delta_{ATE} = \delta_{ATT} = \delta_{ATU}$$
+
 
 ---
-# In practice
+count: false
 
-- Nothing more than averages
+# Selection bias
 
-- **Estimand**: $$\delta_{ATE} = E[Y_{1} - Y_{0}] = E[Y | D=1] - E[Y | D=0]$$
+- Without random assignment, there's a high probability that $$E[Y_{0i}|D_{i}=1] \neq E[Y_{0i}|D_{i}=0]$$
 
-- **Estimate**: $$\hat{\delta}_{ATE} = \frac{1}{N_{1}} \sum_{D_{i}=1} Y_{i} - \frac{1}{N_{0}} \sum_{D_{i}=0} Y_{i},$$ where $N_{1}$ is number of treated and $N_{0}$ is number untreated (control)
+- i.e., outcomes without treatment are different for the treated group
 
-- Inference/hypothesis testing with standard two-sample t-test
-
-<!-- New Section -->
----
-class: inverse, center, middle
-name: selection_observables
-
-# Selection on Observables
-
-<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+- How can we "remove" the bias term?
 
 ---
-# Average Treatment Effect
+count: false
+
+# Selection bias
+
+- The field of causal inference is all about different strategies to remove selection bias
+
+- The first strategy (really, assumption) in this class: **selection on observables** or **conditional indpendence**
+
+---
+# Conditional independence
+
+- Example: Does having health insurance, $D_{i}=1$, improve your health relative to someone without health insurance, $D_{i}=0$?
+
+- $Y_{1i}$ denotes health with insurance, and $Y_{0i}$ health without insurance (these are **potential** outcomes)
+
+- In raw data, $[Y_{i} | D_{i}=1] > E[Y_{i} | D_{i}=0]$, but is that causal?
+
+---
+count: false
+
+# Conditional independence
+
+Some assumptions:
+
+- $Y_{0i}=\alpha + \eta_{i}$
+- $Y_{1i} - Y_{0i} = \delta$
+- There is some set of "controls", $x_{i}$, such that $\eta_{i} = \beta x_{i} + u_{i}$ and $E[u_{i} | x_{i}]=0$ (conditional independence assumption, or CIA)
+
+--
+
+$$\begin{align}
+Y_{i} &= Y_{1i} \times D_{i} + Y_{0i} \times (1-D_{i}) \\
+&= \delta D_{i} + Y_{0i} D_{i} + Y_{0i} - Y_{0i} D_{i} \\
+&= \delta D_{i} + \alpha + \eta_{i} \\
+&= \delta D_{i} + \alpha + \beta x_{i} + u_{i}
+\end{align}$$
+
+
+---
+# Selection in pictures
 ```{r , ref.label="ate-plot2", fig.callout=TRUE, warning=FALSE}
 ```
 
 ---
-# ...with Selection
+count: false
+
+# Selection in pictures
 ```{r ate-plot-alt, echo=F, include=F}
 ggplot(ate.data, aes(x_disp,y)) + 
   geom_point(aes(shape=z_alt, size=5, color=t), alpha=1/2) + 
@@ -634,7 +754,9 @@ ggplot(ate.data, aes(x_disp,y)) +
 ```
 
 ---
-# ...with Selection
+count: false
+
+# Selection in pictures
 ```{r ate-plot-alt2, echo=F, include=F}
 plot.alt <- ggplot(ate.data, aes(xplust,y)) + 
   geom_point(aes(shape=z_alt, size=5, color=t), alpha=1/2) + 
@@ -651,7 +773,9 @@ plot.alt
 
 
 ---
-# ...with Selection
+count: false
+
+# Selection in pictures
 ```{r ate-plot5, echo=F, include=F}
 plot5 <- ggplot(ate.data, aes(xplust,yplusz_alt)) + 
   geom_point(aes(shape=z_alt, size=5, color=t), alpha=1/2) + 
@@ -668,7 +792,10 @@ plot5
 
 
 ---
-# ...with Selection
+count: false
+
+# Selection in pictures
+
 ```{r ate-plot6, echo=F, include=F}
 x0 <- ate.data %>% filter(t==-1) %>% select(xplust)
 mean.x0 <- mean(x0$xplust)
@@ -685,19 +812,22 @@ y0.red <- ate.data %>% filter(t==-1 & z=="red") %>% select(yplusz_alt)
 mean.red <- mean(y0.red$yplusz_alt)-.1
 
 
-plot5 + annotate("text",x=mean.x0, y=mean.blue, label="E[Y(1)|c]", size=4) +
-  annotate("text", x=mean.x1, y=mean.blue, label="E[Y(0)|c]", size=4) +
-  annotate("text",x=mean.x0, y=mean.yellow, label="E[Y(1)|s]", size=4) +
-  annotate("text",x=mean.x1, y=mean.yellow, label="E[Y(0)|s]", size=4) +
-  annotate("text",x=mean.x0, y=mean.red, label="E[Y(1)|t]", size=4) +
-  annotate("text",x=mean.x1, y=mean.red, label="E[Y(0)|t]", size=4)
+plot5 + annotate("text",x=mean.x0, y=mean.blue, label=TeX(r"($E\[Y_{1} | c\])"), size=4) +
+  annotate("text", x=mean.x1, y=mean.blue, label=TeX(r"($E\[Y_{0} | c\])"), size=4) +
+  annotate("text",x=mean.x0, y=mean.yellow, label=TeX(r"($E\[Y_{1} | s\])"), size=4) +
+  annotate("text",x=mean.x1, y=mean.yellow, label=TeX(r"($E\[Y_{0} | s\])"), size=4) +
+  annotate("text",x=mean.x0, y=mean.red, label=TeX(r"($E\[Y_{1} | t\])"), size=4) +
+  annotate("text",x=mean.x1, y=mean.red, label=TeX(r"($E\[Y_{0} | t\])"), size=4)
 ```
 
 ```{r ate-plot6-output, ref.label="ate-plot6", fig.callout=TRUE, warning=FALSE}
 ```
 
 ---
-# Assumption 1: Selection on Observables
+count: false
+
+# Selection in pictures
+
 ```{r ate-plot7, echo=F, include=F}
 plot6 <- ggplot(ate.data, aes(xplust,yplusz_alt)) + 
   geom_point(aes(shape=z_alt, size=5), alpha=1/2) + 
@@ -709,63 +839,77 @@ plot6 <- ggplot(ate.data, aes(xplust,yplusz_alt)) +
 
 diff=(mean.x0+mean.x1)/2
 x.end=mean.x1+.3
-plot6 + annotate("text",x=mean.x0, y=mean.blue, label="E[Y(1)|c]", size=4) +
-  annotate("text", x=mean.x1, y=mean.blue, label="E[Y(0)|c]", size=4) +
-  annotate("text",x=mean.x0, y=mean.yellow, label="E[Y(1)|s]", size=4) +
-  annotate("text",x=mean.x1, y=mean.yellow, label="E[Y(0)|s]", size=4) +
-  annotate("text",x=mean.x0, y=mean.red, label="E[Y(1)|t]", size=4) +
-  annotate("text",x=mean.x1, y=mean.red, label="E[Y(0)|t]", size=4) +
+plot6 + annotate("text",x=mean.x0, y=mean.blue, label=TeX(r"($E\[Y_{1} | c\])"), size=4) +
+  annotate("text", x=mean.x1, y=mean.blue, label=TeX(r"($E\[Y_{0} | c\])"), size=4) +
+  annotate("text",x=mean.x0, y=mean.yellow, label=TeX(r"($E\[Y_{1} | s\])"), size=4) +
+  annotate("text",x=mean.x1, y=mean.yellow, label=TeX(r"($E\[Y_{0} | s\])"), size=4) +
+  annotate("text",x=mean.x0, y=mean.red, label=TeX(r"($E\[Y_{1} | t\])"), size=4) +
+  annotate("text",x=mean.x1, y=mean.red, label=TeX(r"($E\[Y_{0} | t\])"), size=4) +
   annotate("text",x=diff, y=mean.blue, label="-", size=4) +
   annotate("text",x=diff, y=mean.yellow, label="-", size=4) +
   annotate("text",x=diff, y=mean.red, label="-", size=4) +
-  annotate("text",x=x.end, y=mean.blue, label="= E[Y(1)-Y(0)|c]", size=4) +
-  annotate("text",x=x.end, y=mean.yellow, label="= E[Y(1)-Y(0)|s]", size=4) +
-  annotate("text",x=x.end, y=mean.red, label="= E[Y(1)-Y(0)|t]", size=4)
+  annotate("text",x=x.end, y=mean.blue, label=TeX(r"($= E\[ Y_{1} - Y_{0} | c\])"), size=4) +
+  annotate("text",x=x.end, y=mean.yellow, label=TeX(r"($= E\[ Y_{1} - Y_{0} | s\])"), size=4) +
+  annotate("text",x=x.end, y=mean.red, label=TeX(r"($= E\[ Y_{1} - Y_{0} | t\])"), size=4)
 ```
+
 
 ```{r ate-plot7-output, ref.label="ate-plot7", fig.callout=TRUE, warning=FALSE}
 ```
 
 ---
-# Assumption 1: Selection on Observables
+count: false
+
+# Selection in pictures
+
 ```{r ate-plot8, echo=F, include=F}
 eq.start <- x.end-.1
 eq.end <- x.end+.1
 eq.y <- mean.blue-1.3
 ans.y <- eq.y-1.1
-plot6 + annotate("text",x=mean.x0, y=mean.blue, label="E[Y(1)|c]", size=4) +
-  annotate("text", x=mean.x1, y=mean.blue, label="E[Y(0)|c]", size=4) +
-  annotate("text",x=mean.x0, y=mean.yellow, label="E[Y(1)|s]", size=4) +
-  annotate("text",x=mean.x1, y=mean.yellow, label="E[Y(0)|s]", size=4) +
-  annotate("text",x=mean.x0, y=mean.red, label="E[Y(1)|t]", size=4) +
-  annotate("text",x=mean.x1, y=mean.red, label="E[Y(0)|t]", size=4) +
+plot6 + annotate("text",x=mean.x0, y=mean.blue, label=TeX(r"($E\[Y_{1} | c\])"), size=4) +
+  annotate("text", x=mean.x1, y=mean.blue, label=TeX(r"($E\[Y_{0} | c\])"), size=4) +
+  annotate("text",x=mean.x0, y=mean.yellow, label=TeX(r"($E\[Y_{1} | s\])"), size=4) +
+  annotate("text",x=mean.x1, y=mean.yellow, label=TeX(r"($E\[Y_{0} | s\])"), size=4) +
+  annotate("text",x=mean.x0, y=mean.red, label=TeX(r"($E\[Y_{1} | t\])"), size=4) +
+  annotate("text",x=mean.x1, y=mean.red, label=TeX(r"($E\[Y_{0} | t\])"), size=4) +
   annotate("text",x=diff, y=mean.blue, label="-", size=4) +
   annotate("text",x=diff, y=mean.yellow, label="-", size=4) +
   annotate("text",x=diff, y=mean.red, label="-", size=4) +
-  annotate("text",x=x.end, y=mean.blue, label="= E[Y(1)-Y(0)|c]", size=4) +
-  annotate("text",x=x.end, y=mean.yellow, label="= E[Y(1)-Y(0)|s]", size=4) +
-  annotate("text",x=x.end, y=mean.red, label="= E[Y(1)-Y(0)|t]", size=4) +
+  annotate("text",x=x.end, y=mean.blue, label=TeX(r"($= E\[ Y_{1} - Y_{0} | c\])"), size=4) +
+  annotate("text",x=x.end, y=mean.yellow, label=TeX(r"($= E\[ Y_{1} - Y_{0} | s\])"), size=4) +
+  annotate("text",x=x.end, y=mean.red, label=TeX(r"($= E\[ Y_{1} - Y_{0} | t\])"), size=4) +
   annotate("segment", x = eq.start , xend = eq.end, y = eq.y, yend = eq.y, colour = "black") +
-  annotate("text",x=x.end, y=ans.y, label="ATE=E[Y(1)-Y(0)]", size=4)
+  annotate("text",x=x.end, y=ans.y, label=TeX(r"($ATE=E\[ Y_{1} - Y_{0} \])"), size=4)
 ```
 
 ```{r ate-plot8-output, ref.label="ate-plot8", fig.callout=TRUE, warning=FALSE}
 ```
 
 ---
+# Identifying causal effect
+
+Find covariates $X_{i}$ such that the following assumptions are plausible:
+
+
+1. Selection on observables: $$Y_{i}(1), Y_{i}(0) \perp\!\!\!\perp D_{i} | X_{i}$$
+2. Common support: $$0 < \text{Pr}(D_{i}=1|X_{i}) < 1$$
+
+
+--
+
+
+Then we can use $X_{i}$ to group observations and use expectations for control as the predicted counterfactuals among treated, and vice versa. 
+
+
+---
 # Assumption 1: Selection on Observables
 
-More formally:
-
---
-<br>
-<br>
-- $E[Y(1)|W,shape]=E[Y(1)|shape]$
-- $Y(1),Y(0) \perp\!\!\!\perp W | shape$
+$E[Y_{1}|D,X]=E[Y_{1}|X]$
 
 
 --
-<br>
+
 
 In words...nothing unobserved that determines treatment selection and affects your outcome of interest.
 
@@ -786,6 +930,8 @@ plot6
 ```
 
 ---
+count: false
+
 # Violation of Selection on Observables
 ```{r ate-plot9, echo=F, include=F}
 plot7 <- ggplot(ate.data, aes(xplust,yplusz_alt)) + 
@@ -807,7 +953,7 @@ plot7
 Someone of each type must be in both the treated and untreated groups
 
 --
-$$0 < \text{Pr}(W=1|X) <1$$
+$$0 < \text{Pr}(D=1|X) <1$$
 
 ---
 # Assumption 2: Common Support
@@ -834,51 +980,18 @@ plot.overlap
 ```{r, ref.label="ate-overlap", fig.callout=TRUE, warning=FALSE}
 ```
 
+
 <!-- New Section -->
 ---
 class: inverse, center, middle
 name: methods
 
-# Causal Inference with Observational Data
+# Matchmaking
 
 <html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
 
 
----
-# Fundamental Problem of Causal Inference
 
-Potential outcomes:
-- $Y_{i}(1)$ for $W_{i}=1$
-- $Y_{i}(0)$ for $W_{i}=0$
-
-
---
-<br>
-<br>
-
-Average treatment effect is $E[Y_{i}(1)-Y_{i}(0)]$, but: 
-- $E[Y_{i}|W_{i}=1] \neq E[Y_{i}(1)]$
-- $E[Y_{i}|W_{i}=0] \neq E[Y_{i}(0)]$
-
----
-# Fundamental Problem of Causal Inference
-
-- We don't observe the counterfactual outcome...what would have happened if a treated unit was actually untreated.
-
-- *ALL* attempts at causal inference represent some attempt at estimating the counterfactual outcome. We need an estimate for $E[Y_{i}(0)]$ among those that were treated, and vice versa for $E[Y_{i}(1)]$.
-
-
----
-# Causal inference with observational data
-Solution for now: find covariates $X_{i}$ such that the following assumptions are plausible: <br>
-
-1. Selection on observables: $$Y_{i}(1), Y_{i}(0) \perp\!\!\!\perp W_{i} | X_{i}$$
-2. Common support: $$0 < \text{Pr}(W_{i}=1|X_{i}) < 1$$
-
---
-<br>
-
-Then we can use $X_{i}$ to group observations and use expectations for control as the predicted counterfactuals among treated, and vice versa. 
 
 ---
 # Causal inference with observational data
