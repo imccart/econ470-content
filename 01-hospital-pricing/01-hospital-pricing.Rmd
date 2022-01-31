@@ -980,6 +980,10 @@ plot.overlap
 ```{r, ref.label="ate-overlap", fig.callout=TRUE, warning=FALSE}
 ```
 
+---
+# Role of selection in practice
+
+- Look at Table 2.2 of *Mastering Metrics*
 
 <!-- New Section -->
 ---
