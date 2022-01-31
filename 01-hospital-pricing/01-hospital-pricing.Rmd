@@ -539,7 +539,7 @@ Tend to focus on **averages**<sup>1</sup>:
 
 - **Estimate**: $$\hat{\delta}_{ATE} = \frac{1}{N_{1}} \sum_{D_{i}=1} Y_{i} - \frac{1}{N_{0}} \sum_{D_{i}=0} Y_{i},$$ where $N_{1}$ is number of treated and $N_{0}$ is number untreated (control)
 
-- Inference/hypothesis testing with standard two-sample t-test
+- With random assignment and equal groups, inference/hypothesis testing with standard two-sample t-test
 
 
 ---
@@ -892,7 +892,7 @@ plot6 + annotate("text",x=mean.x0, y=mean.blue, label=TeX(r"($E\[Y_{1} | c\])"),
 Find covariates $X_{i}$ such that the following assumptions are plausible:
 
 
-1. Selection on observables: $$Y_{i}(1), Y_{i}(0) \perp\!\!\!\perp D_{i} | X_{i}$$
+1. Selection on observables: $$Y_{0i}, Y_{1i} \perp\!\!\!\perp D_{i} | X_{i}$$
 2. Common support: $$0 < \text{Pr}(D_{i}=1|X_{i}) < 1$$
 
 
