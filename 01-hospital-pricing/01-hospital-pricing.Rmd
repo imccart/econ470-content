@@ -542,96 +542,6 @@ Tend to focus on **averages**<sup>1</sup>:
 - With random assignment and equal groups, inference/hypothesis testing with standard two-sample t-test
 
 
----
-# ATE in pictures
-
-```{r ate_data, echo=F, eval=T}
-ate.data <- tibble(
-  x=rnorm(18,5,1),
-  z=c(rep("blue",3),rep("red",3),rep("yellow",3),rep("blue",3),rep("red",3),rep("yellow",3)),
-  z_lab=c(" "," ","#","#"," "," "," "," "," "," "," "," "," "," "," "," ","#","#"),
-  z_alt=c(rep("blue",4),rep("red",3),rep("yellow",2),rep("blue",2),rep("red",3),rep("yellow",4)),  
-  t=c(-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,1,1),
-  e=rnorm(18,0,.1),
-  x_disp=rnorm(18,0,0.1)
-)
-ate.data <- ate.data %>%
-  mutate(y=1.5*x + .75*t + e,
-         xplust=x_disp+.3*t,
-         yplusz=y+ (-10)*(z=="blue") + 10*(z=="yellow"),
-         yplusz_alt=y+(-10)*(z_alt=="blue") + 10*(z_alt=="yellow"))
-```
-
-```{r ate-plot1, echo=F, include=F}
-ggplot(ate.data, aes(x_disp,y)) + 
-  geom_point(aes(shape=z, size=5), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15))
-```
-
-```{r ate-plot1-output, ref.label="ate-plot1", fig.callout=TRUE, warning=FALSE}
-```
-
-
----
-count: false
-
-# ATE in pictures
-```{r ate-plot2, echo=F, include=F}
-ggplot(ate.data, aes(x_disp,y)) + 
-  geom_point(aes(shape=z, size=5, color=t), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15))
-```
-
-```{r ate-plot2-output, ref.label="ate-plot2", fig.callout=TRUE, warning=FALSE}
-```
-
-
----
-count: false
-
-# ATE in pictures
-```{r ate-plot3, echo=F, include=F}
-plot3 <- ggplot(ate.data, aes(xplust,y)) + 
-  geom_point(aes(shape=z, size=5, color=t), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15))
-plot3
-```
-```{r ate-plot3-output, ref.label="ate-plot3", fig.callout=TRUE, warning=FALSE}
-```
-
-
----
-count: false
-
-# ATE in pictures
-```{r ate-plot4, echo=F, include=F}
-x0 <- ate.data %>% filter(t==-1) %>% select(xplust)
-mean.x0 <- mean(x0$xplust)
-x1 <- ate.data %>% filter(t==1) %>% select(xplust)
-mean.x1 <- mean(x1$xplust)
-
-plot3 + annotate("text",x=mean.x0, y=-2, label=TeX(r"($E\[Y_{1}\])"), size=5, parse=TRUE) +
-  annotate("text", x=mean.x1, y=-2, label=TeX(r"($E\[Y_{0}\])"), size=5, parse=TRUE)
-```
-
-```{r ate-plot4-output, ref.label="ate-plot4", fig.callout=TRUE, warning=FALSE}
-```
-
---
-$$ATE = E[Y_{1}-Y_{0}]$$
-
 <!-- New Section -->
 ---
 class: inverse, center, middle
@@ -690,19 +600,61 @@ count: false
 
 - i.e., outcomes without treatment are different for the treated group
 
-- How can we "remove" the bias term?
+
+---
+# Omitted variables bias
+
+- In a regression setting, selection bias is the same problem as omitted variables bias (OVB)
+
+- Quick review: Goal of OLS is to find $\hat{\beta}$ to "best fit" the linear equation $y_{i} = \alpha + x_{i} \beta + \epsilon_{i}$
+
+---
+# Regression review
+
+$$\begin{align}
+\min_{\beta} & \sum_{i=1}^{N} \left(y_{i} - \alpha - x_{i} \beta\right)^{2}  = \min_{\beta} \sum_{i=1}^{N} \left(y_{i} - (\bar{y} - \bar{x}\beta) - x_{i} \beta\right)^{2}\\
+0 &= \sum_{i=1}^{N} \left(y_{i} - \bar{y} - (x_{i} - \bar{x})\hat{\beta} \right)(x_{i} - \bar{x}) \\
+0 &= \sum_{i=1}^{N} (y_{i} - \bar{y})(x_{i} - \bar{x}) - \hat{\beta} \sum_{i=1}^{N}(x_{i} - \bar{x})^{2} \\
+\hat{\beta} &= \frac{\sum_{i=1}^{N} (y_{i} - \bar{y})(x_{i} - \bar{x})}{\sum_{i=1}^{N} (x_{i} - \bar{x})^{2}} = \frac{Cov(y,x)}{Var(x)}
+\end{align}$$
+
+---
+# Omitted variables bias
+
+- Interested in estimate of the effect of schooling on wages
+
+$$Y_{i} = \alpha + \beta s_{i} + \gamma A_{i} + \epsilon_{i}$$
+
+- But we don't observe ability, $A_{i}$, so we estimate
+
+$$Y_{i} = \alpha + \beta s_{i} + u_{i}$$
+
+- What is our estimate of $\beta$ from this regression?
 
 ---
 count: false
 
-# Selection bias
+# Omitted variables bias
+
+$$\begin{align}
+\hat{\beta} &= \frac{Cov(Y_{i}, s_{i})}{Var(s_{i})} \\
+ &= \frac{Cov(\alpha + \beta s_{i} + \gamma A_{i} + \epsilon_{i}, s_{i})}{Var(s_{i})} \\
+ &= \frac{\beta Cov(s_{i}, s_{i}) + \gamma Cov(A_{i},s_{i}) + Cov(\epsilon_{i}, s_{i})}{Var(s_{i})}\\
+ &= \beta \frac{Var(s_{i})}{Var(s_{i})} + \gamma \frac{Cov(A_{i},s_{i})}{Var(s_{i})} + 0\\
+ &= \beta + \gamma \times \theta_{as}
+ \end{align}$$
+
+
+
+---
+# Removing selection bias without RCT
 
 - The field of causal inference is all about different strategies to remove selection bias
 
 - The first strategy (really, assumption) in this class: **selection on observables** or **conditional indpendence**
 
 ---
-# Conditional independence
+# Intuition
 
 - Example: Does having health insurance, $D_{i}=1$, improve your health relative to someone without health insurance, $D_{i}=0$?
 
@@ -713,7 +665,7 @@ count: false
 ---
 count: false
 
-# Conditional independence
+# Intuition
 
 Some assumptions:
 
@@ -730,164 +682,79 @@ Y_{i} &= Y_{1i} \times D_{i} + Y_{0i} \times (1-D_{i}) \\
 &= \delta D_{i} + \alpha + \beta x_{i} + u_{i}
 \end{align}$$
 
-
 ---
-# Selection in pictures
-```{r , ref.label="ate-plot2", fig.callout=TRUE, warning=FALSE}
-```
+# ATEs versus regression coefficients
 
----
-count: false
+- Estimating the regression equation, $$Y_{i} = \alpha + \delta D_{i} + \beta x_{i} + u_{i}$$ provides a causal estimate of the effect of $D_{i}$ on $Y_{i}$
 
-# Selection in pictures
-```{r ate-plot-alt, echo=F, include=F}
-ggplot(ate.data, aes(x_disp,y)) + 
-  geom_point(aes(shape=z_alt, size=5, color=t), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15))
-```
-
-```{r , ref.label="ate-plot-alt", fig.callout=TRUE, warning=FALSE}
-```
+- But what does that really mean?
 
 ---
 count: false
 
-# Selection in pictures
-```{r ate-plot-alt2, echo=F, include=F}
-plot.alt <- ggplot(ate.data, aes(xplust,y)) + 
-  geom_point(aes(shape=z_alt, size=5, color=t), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15))
-plot.alt
-```
+# ATEs vs regression coefficients
 
-```{r, ref.label="ate-plot-alt2", fig.callout=TRUE, warning=FALSE}
-```
+- *Ceteris paribus* ("with other conditions remaining the same"), a change in $D_{i}$ will lead to a change in $Y_{i}$ in the amount of $\hat{\delta}$
+
+- But is *ceteris paribus* informative about policy?
+
+---
+count: false
+
+# ATEs vs regression coefficients
+
+- $Y_{1i} = Y_{0i} + \delta_{i} D_{i}$ (allows for heterogeneous effects)
+
+- $Y_{i} = \alpha + \beta D_{i} + \gamma X_{i} + \epsilon_{i}$, with $Y_{0i}, Y_{1i} \perp\!\!\!\perp D_{i} | X_{i}$
+
+- Aronow and Samii, 2016, show that: $$\hat{\beta} \rightarrow_{p} \frac{E[w_{i} \delta_{i}]}{E[w_{i}]},$$ where $w_{i} = (D_{i} - E[D_{i} | X_{i}])^{2}$
 
 
 ---
 count: false
 
-# Selection in pictures
-```{r ate-plot5, echo=F, include=F}
-plot5 <- ggplot(ate.data, aes(xplust,yplusz_alt)) + 
-  geom_point(aes(shape=z_alt, size=5, color=t), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15))
-plot5
-```
+# ATEs vs regression coefficients
 
-```{r ate-plot5-output, ref.label="ate-plot5", fig.callout=TRUE, warning=FALSE}
-```
+- Simplify to ATT and ATU
+- $Y_{1i} = Y_{0i} + \delta_{ATT} D_{i} + \delta_{ATU} (1-D_{i})$ 
+- $Y_{i} = \alpha + \beta D_{i} + \gamma X_{i} + \epsilon_{i}$, with $Y_{0i}, Y_{1i} \perp\!\!\!\perp D_{i} | X_{i}$
+
+
+--
+
+
+$$\begin{align}
+\beta = & \frac{P(D_{i}=1) \times \pi (X_{i} | D_{i}=1) \times (1- \pi (X_{i} | D_{i}=1))}{\sum_{j=0,1} P(D_{i}=j) \times \pi (X_{i} | D_{i}=j) \times (1- \pi (X_{i} | D_{i}=j))} \delta_{ATU} \\
+& + \frac{P(D_{i}=0) \times \pi (X_{i} | D_{i}=0) \times (1- \pi (X_{i} | D_{i}=0))}{\sum_{j=0,1} P(D_{i}=j) \times \pi (X_{i} | D_{i}=j) \times (1- \pi (X_{i} | D_{i}=j))} \delta_{ATT}
+\end{align}$$
 
 
 ---
 count: false
 
-# Selection in pictures
+# ATEs vs regression coefficients
 
-```{r ate-plot6, echo=F, include=F}
-x0 <- ate.data %>% filter(t==-1) %>% select(xplust)
-mean.x0 <- mean(x0$xplust)
-x1 <- ate.data %>% filter(t==1) %>% select(xplust)
-mean.x1 <- mean(x1$xplust)
+What does this mean?
 
-y0.blue <- ate.data %>% filter(t==-1 & z=="blue") %>% select(yplusz_alt)
-mean.blue <- mean(y0.blue$yplusz_alt)-.1
+- OLS puts more weight on observations with treatment $D_{i}$ "unexplained" by $X_{i}$
 
-y0.yellow <- ate.data %>% filter(t==-1 & z=="yellow") %>% select(yplusz_alt)
-mean.yellow <- mean(y0.yellow$yplusz_alt)-.1
+- "Reverse" weighting such that the proportion of treated units are used to weight the ATU while the proportion of untreated units enter the weights of the ATT
 
-y0.red <- ate.data %>% filter(t==-1 & z=="red") %>% select(yplusz_alt)
-mean.red <- mean(y0.red$yplusz_alt)-.1
+- This is *an* average effect, but probably not the average we want
 
 
-plot5 + annotate("text",x=mean.x0, y=mean.blue, label=TeX(r"($E\[Y_{1} | c\])"), size=4) +
-  annotate("text", x=mean.x1, y=mean.blue, label=TeX(r"($E\[Y_{0} | c\])"), size=4) +
-  annotate("text",x=mean.x0, y=mean.yellow, label=TeX(r"($E\[Y_{1} | s\])"), size=4) +
-  annotate("text",x=mean.x1, y=mean.yellow, label=TeX(r"($E\[Y_{0} | s\])"), size=4) +
-  annotate("text",x=mean.x0, y=mean.red, label=TeX(r"($E\[Y_{1} | t\])"), size=4) +
-  annotate("text",x=mean.x1, y=mean.red, label=TeX(r"($E\[Y_{0} | t\])"), size=4)
-```
+<!-- New Section -->
+---
+class: inverse, center, middle
+name: methods
 
-```{r ate-plot6-output, ref.label="ate-plot6", fig.callout=TRUE, warning=FALSE}
-```
+# Matching and Weighting
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
 
 ---
-count: false
-
-# Selection in pictures
-
-```{r ate-plot7, echo=F, include=F}
-plot6 <- ggplot(ate.data, aes(xplust,yplusz_alt)) + 
-  geom_point(aes(shape=z_alt, size=5), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15))
-
-diff=(mean.x0+mean.x1)/2
-x.end=mean.x1+.3
-plot6 + annotate("text",x=mean.x0, y=mean.blue, label=TeX(r"($E\[Y_{1} | c\])"), size=4) +
-  annotate("text", x=mean.x1, y=mean.blue, label=TeX(r"($E\[Y_{0} | c\])"), size=4) +
-  annotate("text",x=mean.x0, y=mean.yellow, label=TeX(r"($E\[Y_{1} | s\])"), size=4) +
-  annotate("text",x=mean.x1, y=mean.yellow, label=TeX(r"($E\[Y_{0} | s\])"), size=4) +
-  annotate("text",x=mean.x0, y=mean.red, label=TeX(r"($E\[Y_{1} | t\])"), size=4) +
-  annotate("text",x=mean.x1, y=mean.red, label=TeX(r"($E\[Y_{0} | t\])"), size=4) +
-  annotate("text",x=diff, y=mean.blue, label="-", size=4) +
-  annotate("text",x=diff, y=mean.yellow, label="-", size=4) +
-  annotate("text",x=diff, y=mean.red, label="-", size=4) +
-  annotate("text",x=x.end, y=mean.blue, label=TeX(r"($= E\[ Y_{1} - Y_{0} | c\])"), size=4) +
-  annotate("text",x=x.end, y=mean.yellow, label=TeX(r"($= E\[ Y_{1} - Y_{0} | s\])"), size=4) +
-  annotate("text",x=x.end, y=mean.red, label=TeX(r"($= E\[ Y_{1} - Y_{0} | t\])"), size=4)
-```
-
-
-```{r ate-plot7-output, ref.label="ate-plot7", fig.callout=TRUE, warning=FALSE}
-```
-
----
-count: false
-
-# Selection in pictures
-
-```{r ate-plot8, echo=F, include=F}
-eq.start <- x.end-.1
-eq.end <- x.end+.1
-eq.y <- mean.blue-1.3
-ans.y <- eq.y-1.1
-plot6 + annotate("text",x=mean.x0, y=mean.blue, label=TeX(r"($E\[Y_{1} | c\])"), size=4) +
-  annotate("text", x=mean.x1, y=mean.blue, label=TeX(r"($E\[Y_{0} | c\])"), size=4) +
-  annotate("text",x=mean.x0, y=mean.yellow, label=TeX(r"($E\[Y_{1} | s\])"), size=4) +
-  annotate("text",x=mean.x1, y=mean.yellow, label=TeX(r"($E\[Y_{0} | s\])"), size=4) +
-  annotate("text",x=mean.x0, y=mean.red, label=TeX(r"($E\[Y_{1} | t\])"), size=4) +
-  annotate("text",x=mean.x1, y=mean.red, label=TeX(r"($E\[Y_{0} | t\])"), size=4) +
-  annotate("text",x=diff, y=mean.blue, label="-", size=4) +
-  annotate("text",x=diff, y=mean.yellow, label="-", size=4) +
-  annotate("text",x=diff, y=mean.red, label="-", size=4) +
-  annotate("text",x=x.end, y=mean.blue, label=TeX(r"($= E\[ Y_{1} - Y_{0} | c\])"), size=4) +
-  annotate("text",x=x.end, y=mean.yellow, label=TeX(r"($= E\[ Y_{1} - Y_{0} | s\])"), size=4) +
-  annotate("text",x=x.end, y=mean.red, label=TeX(r"($= E\[ Y_{1} - Y_{0} | t\])"), size=4) +
-  annotate("segment", x = eq.start , xend = eq.end, y = eq.y, yend = eq.y, colour = "black") +
-  annotate("text",x=x.end, y=ans.y, label=TeX(r"($ATE=E\[ Y_{1} - Y_{0} \])"), size=4)
-```
-
-```{r ate-plot8-output, ref.label="ate-plot8", fig.callout=TRUE, warning=FALSE}
-```
-
----
-# Identifying causal effect
+# Goal
 
 Find covariates $X_{i}$ such that the following assumptions are plausible:
 
@@ -914,131 +781,27 @@ $E[Y_{1}|D,X]=E[Y_{1}|X]$
 In words...nothing unobserved that determines treatment selection and affects your outcome of interest.
 
 ---
-# Violation of Selection on Observables
-```{r ate-select, echo=F, include=F}
-plot6 <- ggplot(ate.data, aes(xplust,yplusz_alt)) + 
-  geom_point(aes(shape=z_alt, size=5), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15))
-plot6
-```
-
-```{r ate-select-output, ref.label="ate-select", fig.callout=TRUE, warning=FALSE}
-```
-
----
-count: false
-
-# Violation of Selection on Observables
-```{r ate-plot9, echo=F, include=F}
-plot7 <- ggplot(ate.data, aes(xplust,yplusz_alt)) + 
-  geom_point(aes(shape=z_alt, size=5, color=t), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15)) +
-  geom_text(aes(label=z_lab), alpha=1/3, size=3)
-plot7
-```
-
-```{r ate-plot9-output, ref.label="ate-plot9", fig.callout=TRUE, warning=FALSE}
-```
-
----
 # Assumption 2: Common Support
 Someone of each type must be in both the treated and untreated groups
 
 --
 $$0 < \text{Pr}(D=1|X) <1$$
 
----
-# Assumption 2: Common Support
-```{r, ref.label="ate-plot5", fig.callout=TRUE, warning=FALSE}
-```
-
----
-# Violation of Common Support
-```{r ate-overlap, echo=F, include=F}
-ate.new <- ate.data %>% filter(z_alt=="blue" | 
-                                 (z_alt=="red" & t==-1) | 
-                                 (z_alt=="yellow" & t==1))
-
-plot.overlap <- ggplot(ate.new, aes(xplust,yplusz_alt)) + 
-  geom_point(aes(shape=z_alt, size=5, color=t), alpha=1/2) + 
-  theme_classic() +
-  theme(legend.position="none", axis.line=element_blank(),
-        axis.text=element_blank(), axis.title=element_blank(),
-        axis.ticks=element_blank()) +
-  expand_limits(x=c(-.3,.8), y=c(-5,15))
-plot.overlap
-```
-
-```{r, ref.label="ate-overlap", fig.callout=TRUE, warning=FALSE}
-```
-
----
-# Role of selection in practice
-
-- Look at Table 2.2 of *Mastering Metrics*
-
-<!-- New Section -->
----
-class: inverse, center, middle
-name: methods
-
-# Matchmaking
-
-<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
-
 
 
 
 ---
 # Causal inference with observational data
+
 With selection on observables and common support:
-1. Matching estimators: $$E[Y_{i}(1) - Y_{i}(0)] = E[ E[Y_{i}|W_{i}=1, X_{i}] - E[Y_{i}|W_{i}=0, X_{i}] ]$$
-2. Regression estimators: $$E[Y_{i}(1) - Y_{i}(0)] = E[ E[Y_{i}|W_{i}=1, X_{i}] ] - E[ E[Y_{i}|W_{i}=0, X_{i}] ]$$
+
+1. Matching estimators 
+2. Regression estimators
 
 --
 <br>
 What's the difference?
 
----
-# Matching
-```{r ate-plot8-output, ref.label="ate-plot8", fig.callout=TRUE, warning=FALSE}
-```
-
----
-# Regression
-```{r regression, echo=F, include=F}
-eq1.start <- mean.x1-.1
-eq1.end <- mean.x1+.1
-eq2.start <- mean.x0-.1
-eq2.end <- mean.x0+.1
-
-eq.y <- mean.blue-1.3
-ans.y <- eq.y-1.1
-mid=(mean.x0+mean.x1)/2
-plot6 + annotate("text",x=mean.x0, y=mean.blue, label="E[Y(1)|c]", size=4) +
-  annotate("text", x=mean.x1, y=mean.blue, label="E[Y(0)|c]", size=4) +
-  annotate("text",x=mean.x0, y=mean.yellow, label="E[Y(1)|s]", size=4) +
-  annotate("text",x=mean.x1, y=mean.yellow, label="E[Y(0)|s]", size=4) +
-  annotate("text",x=mean.x0, y=mean.red, label="E[Y(1)|t]", size=4) +
-  annotate("text",x=mean.x1, y=mean.red, label="E[Y(0)|t]", size=4) +
-  annotate("segment", x = eq1.start , xend = eq1.end, y = eq.y, yend = eq.y, colour = "black") +
-  annotate("segment", x = eq2.start , xend = eq2.end, y = eq.y, yend = eq.y, colour = "black") +  
-  annotate("text",x=mean.x1, y=ans.y, label="E[Y(1)]", size=4) +
-  annotate("text",x=mean.x0, y=ans.y, label="E[Y(0)]", size=4) +
-  annotate("text",x=mid, y=ans.y, label="-", size=4) +    
-  annotate("text",x=x.end, y=ans.y, label="=E[Y(1)-Y(0)]", size=4)  
-```
-
-```{r regression-output, ref.label="regression", fig.callout=TRUE, warning=FALSE}
-```
 
 ---
 # Estimation options
@@ -1227,6 +990,7 @@ anim_save("reg_animate.gif",
   ![:scale 900px](pics/reg_animate.gif)
 ]
 
+
 ---
 # Simulated data
 Now let's do some matching, re-weighting, and regression with simulated data:
@@ -1310,6 +1074,11 @@ mean(pred1_alt-pred0_alt)
 ```
 ]
 
+
+---
+# What covariates to use?
+
+- There are such things as "bad controls"
 
 
 <!-- New Section -->
