@@ -314,8 +314,6 @@ name: causal
 
 
 ---
-count: false
-
 # Why causal inference?
 
 Another example: **What price should we charge for a night in a hotel?**
@@ -358,8 +356,6 @@ Another example: **What price should we charge for a night in a hotel?**
 
 
 ---
-count: false
-
 # Some notation
 
 **Potential outcomes**
@@ -368,8 +364,6 @@ count: false
 - `\(Y_{0i}\)` is the potential outcome for unit `\(i\)` without treatment
 
 ---
-count: false
-
 # Some notation
 
 **Observed outcome**
@@ -405,8 +399,6 @@ Assumes **SUTVA** (stable unit treatment value assumption)...no interference acr
 
 
 ---
-count: false 
-
 # Example of "Potential Outcomes"
 .pull-left[
 ![:scale 420px](pics/EmoryPicture.jpg)
@@ -442,8 +434,6 @@ Earnings due to Emory = `\(Y_{1}-Y_{0}\)` = &lt;span&gt;&amp;#36;&lt;/span&gt;15
 
 
 ---
-count: false
-
 # Example of "Potential Outcomes"
 
 .pull-left[
@@ -538,8 +528,6 @@ E[Y_{i} | D_{i}=1] &amp;- E[Y_{i} | D_{i}=0] \\
 \end{align}$$`
 
 ---
-count: false
-
 # Selection bias
 
 - Selection bias means `\(E[Y_{0i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \neq 0\)`
@@ -549,8 +537,6 @@ count: false
 - e.g., treated group was going to be better on average even without treatment (higher wages, healthier, etc.)
 
 ---
-count: false
-
 # Selection bias
 
 - How to "remove" selection bias?
@@ -563,8 +549,6 @@ count: false
 
 
 ---
-count: false
-
 # Selection bias
 
 - Without random assignment, there's a high probability that `$$E[Y_{0i}|D_{i}=1] \neq E[Y_{0i}|D_{i}=0]$$`
@@ -603,8 +587,6 @@ count: false
 - What is our estimate of `\(\beta\)` from this regression?
 
 ---
-count: false
-
 # Omitted variables bias
 
 `$$\begin{align}
@@ -634,8 +616,6 @@ count: false
 - In raw data, `\([Y_{i} | D_{i}=1] &gt; E[Y_{i} | D_{i}=0]\)`, but is that causal?
 
 ---
-count: false
-
 # Intuition
 
 Some assumptions:
@@ -661,8 +641,6 @@ Y_{i} &amp;= Y_{1i} \times D_{i} + Y_{0i} \times (1-D_{i}) \\
 - But what does that really mean?
 
 ---
-count: false
-
 # ATEs vs regression coefficients
 
 - *Ceteris paribus* ("with other conditions remaining the same"), a change in `\(D_{i}\)` will lead to a change in `\(Y_{i}\)` in the amount of `\(\hat{\delta}\)`
@@ -670,8 +648,6 @@ count: false
 - But is *ceteris paribus* informative about policy?
 
 ---
-count: false
-
 # ATEs vs regression coefficients
 
 - `\(Y_{1i} = Y_{0i} + \delta_{i} D_{i}\)` (allows for heterogeneous effects)
@@ -682,8 +658,6 @@ count: false
 
 
 ---
-count: false
-
 # ATEs vs regression coefficients
 
 - Simplify to ATT and ATU
@@ -701,8 +675,6 @@ count: false
 
 
 ---
-count: false
-
 # ATEs vs regression coefficients
 
 What does this mean?
