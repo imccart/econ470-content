@@ -752,6 +752,13 @@ $E[Y_{1}|D,X]=E[Y_{1}|X]$
 
 In words...nothing unobserved that determines treatment selection and affects your outcome of interest.
 
+
+---
+# Assumption 1: Selection on Observables
+
+- Example of selection on observables from *Mastering Metrics*
+
+
 ---
 # Assumption 2: Common Support
 Someone of each type must be in both the treated and untreated groups
@@ -767,21 +774,31 @@ $$0 < \text{Pr}(D=1|X) <1$$
 
 With selection on observables and common support:
 
-1. Matching estimators 
-2. Regression estimators
+1. Subclassification
+2. Matching estimators
+3. Reweighting estimators
+4. Regression estimators
 
---
-<br>
-What's the difference?
 
 
 ---
-# Estimation options
-- Matching
-- Weighting
-- Regression
-- Doubly-robust weighting + regression (won't cover)
+# Subclassification
 
+Sum the average treatment effects by group, and take a weighted average over those groups:
+
+$$ATE=\sum_{i=1}^{N} P(X=x_{i}) \left(E[Y | X, D=1] - E[Y | X, D=0]\right)$$
+
+---
+# Subclassification
+
+- Difference between treated and controls
+- Weighted average by probability of given group (proportion of sample)
+- What if outcome is unobserved for treatment or control group for a given subclass?
+
+
+--
+
+- This is the *curse of dimensionality*
 
 ---
 # Matching: The process
@@ -878,6 +895,16 @@ anim_save("match_animate.gif",
   ![:scale 900px](pics/match_animate.gif)
 ]
 
+---
+# Matching: Defining "nearest"
+
+- But are observations really the same in each group?
+- Potential for "matching discrepancies" to introduce bias in estimates
+
+
+--
+
+- "Bias correction" based on $$\hat{\mu}(x_{i}) - \hat{\mu}(x_{j(i)})$$ (i.e., difference in fitted values from regression of $y$ on $x$, with the difference between observed $Y_{1i}$ and imputed $Y_{0i}$)
 
 ---
 # Weighting
@@ -1051,6 +1078,13 @@ mean(pred1_alt-pred0_alt)
 # What covariates to use?
 
 - There are such things as "bad controls"
+- We want to avoid control variables that are:
+
+
+--
+
+- Outcomes of the treatment
+- Also endogenous (more generally)
 
 
 <!-- New Section -->
