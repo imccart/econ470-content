@@ -774,18 +774,18 @@ Sum the average treatment effects by group, and take a weighted average over tho
 ---
 # Matching: The process
 1. For each observation `\(i\)`, find the `\(m\)` "nearest" neighbors, `\(J_{m}(i)\)`. 
-2. Impute `\(\hat{Y}_{i}(0)\)` and `\(\hat{Y}_{i}(1)\)` for each observation:&lt;br&gt;
-`$$\hat{Y}_{i}(0) = \begin{cases}
-    Y_{i} &amp; \text{if} &amp; W_{i}=0 \\
-    \frac{1}{m} \sum_{j \in J_{m}(i)} Y_{j} &amp; \text{if} &amp; W_{i}=1 
+2. Impute `\(\hat{Y}_{0i}\)` and `\(\hat{Y}_{1i}\)` for each observation:&lt;br&gt;
+`$$\hat{Y}_{0i} = \begin{cases}
+    Y_{i} &amp; \text{if} &amp; D_{i}=0 \\
+    \frac{1}{m} \sum_{j \in J_{m}(i)} Y_{j} &amp; \text{if} &amp; D_{i}=1 
 \end{cases}$$`
-`$$\hat{Y}_{i}(1) = \begin{cases}
-    Y_{i} &amp; \text{if} &amp; W_{i}=1 \\
-    \frac{1}{m} \sum_{j \in J_{m}(i)} Y_{j} &amp; \text{if} &amp; W_{i}=0 
+`$$\hat{Y}_{1i} = \begin{cases}
+    Y_{i} &amp; \text{if} &amp; D_{i}=1 \\
+    \frac{1}{m} \sum_{j \in J_{m}(i)} Y_{j} &amp; \text{if} &amp; D_{i}=0 
 \end{cases}$$`
 
 3. Form "matched" ATE:&lt;br&gt;
-`\(\hat{\delta}^{\text{match}} = \frac{1}{N} \sum_{i=1}^{N} \left(\hat{Y}_{i}(1) - \hat{Y}_{i}(0) \right)\)`
+`\(\hat{\delta}^{\text{match}} = \frac{1}{N} \sum_{i=1}^{N} \left(\hat{Y}_{1i} - \hat{Y}_{0i} \right)\)`
 
 ---
 # Matching: Defining "nearest"
@@ -821,11 +821,11 @@ Sum the average treatment effects by group, and take a weighted average over tho
 ---
 # Weighting
 
-1. Estimate propensity score `ps &lt;- glm(W~X, family=binomial, data)`, denoted `\(\hat{\pi}(X_{i})\)`
+1. Estimate propensity score `ps &lt;- glm(D~X, family=binomial, data)`, denoted `\(\hat{\pi}(X_{i})\)`
 2. Weight by inverse of propensity score&lt;br&gt;
 .center[
-`\(\hat{\mu}_{1} = \frac{ \sum_{i=1}^{N} \frac{Y_{i} W_{i}}{\hat{\pi}(X_{i})} }{ \sum_{i=1}^{N} \frac{W_{i}}{\hat{\pi}(X_{i})} }\)` and 
-`\(\hat{\mu}_{0} = \frac{ \sum_{i=1}^{N} \frac{Y_{i} (1-W_{i})}{1-\hat{\pi}(X_{i})} }{ \sum_{i=1}^{N} \frac{1-W_{i}}{1-\hat{\pi}(X_{i})} }\)`
+`\(\hat{\mu}_{1} = \frac{ \sum_{i=1}^{N} \frac{Y_{i} D_{i}}{\hat{\pi}(X_{i})} }{ \sum_{i=1}^{N} \frac{D_{i}}{\hat{\pi}(X_{i})} }\)` and 
+`\(\hat{\mu}_{0} = \frac{ \sum_{i=1}^{N} \frac{Y_{i} (1-D_{i})}{1-\hat{\pi}(X_{i})} }{ \sum_{i=1}^{N} \frac{1-D_{i}}{1-\hat{\pi}(X_{i})} }\)`
 ]
 3. Form "inverse-propensity weighted" ATE:&lt;br&gt;
 .center[
@@ -834,8 +834,8 @@ Sum the average treatment effects by group, and take a weighted average over tho
 
 ---
 # Regression
-1. Regress `\(Y_{i}\)` on `\(X_{i}\)` among `\(W_{i}=1\)` to form `\(\hat{\mu}_{1}(X_{i})\)`
-2. Regress `\(Y_{i}\)` on `\(X_{i}\)` among `\(W_{i}=0\)` to form `\(\hat{\mu}_{0}(X_{i})\)`
+1. Regress `\(Y_{i}\)` on `\(X_{i}\)` among `\(D_{i}=1\)` to form `\(\hat{\mu}_{1}(X_{i})\)`
+2. Regress `\(Y_{i}\)` on `\(X_{i}\)` among `\(D_{i}=0\)` to form `\(\hat{\mu}_{0}(X_{i})\)`
 3. Form difference in predictions:&lt;br&gt;
 .center[
 `$$\hat{\delta}^{reg} = \frac{1}{N} \sum_{i=1}^{N} \left(\hat{\mu}_{1}(X_{i}) - \hat{\mu}_{0}(X_{i})\right)$$`
@@ -846,9 +846,12 @@ Sum the average treatment effects by group, and take a weighted average over tho
 
 Or estimate in one step, 
 .center[
-`$$Y_{i} = \delta W_{i} + \beta X_{i} + W_{i} \times \left(X_{i} - \bar{X}\right) \gamma + \varepsilon_{i}$$`
+`$$Y_{i} = \delta D_{i} + \beta X_{i} + D_{i} \times \left(X_{i} - \bar{X}\right) \gamma + \varepsilon_{i}$$`
 ]
 
+--
+
+- Note the `\((X_{i} - \bar{X})\)`. What does this do?
 
 ---
 # Animation for regression
