@@ -84,7 +84,7 @@ xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
 
 6. [Matching and Weighting](#methods)
 
-7. [Pricing and Profit Status](#price_profit)
+7. [Pricing and Penalties](#price_penalty)
 
 <!-- New Section -->
 ---
@@ -983,8 +983,7 @@ p <- ggplot(dffull,aes(y=Y,x=X,color=as.factor(W)))+geom_point()+
   exit_fade()+enter_fade()
 
 anim.reg <- animate(p,nframes=200)
-anim_save("reg_animate.gif",
-          anim.reg,path="D:/CloudStation/Professional/Teaching Material/Emory/Econ 470 - Economics and Health Policy/03-Selection-HospitalPricing/pics")
+anim_save("pics/reg_animate.gif", anim.reg)
 ```
 
 .center[
@@ -1092,9 +1091,9 @@ mean(pred1_alt-pred0_alt)
 <!-- New Section -->
 ---
 class: inverse, center, middle
-name: price_profit
+name: price_penalty
 
-# Pricing and Hospital Profit Status
+# Pricing and Hospital Penalties
 
 <html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
 
