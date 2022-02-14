@@ -61,7 +61,8 @@ knitr::opts_hooks$set(fig.callout = function(options) {
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
-               scales, plotly, gganimate, cobalt, MatchIt, ggthemes, here, latex2exp)
+               scales, plotly, gganimate, cobalt, MatchIt, ggthemes, here, latex2exp,
+               hettreatreg)
 set.seed(12345)
 ```
 
@@ -1512,6 +1513,17 @@ summary(reg)
 6. IPW regression: `r round(ipw.reg$coeff[2],2)`
 7. Regression: `r round(mean(pred1-pred0),2)`
 8. Regression 1-step: `r round(reg$coeff[2],2)`
+
+
+---
+# Summary of ATEs
+
+Why such large differences between linear (unweighted) regression and other approaches?
+
+
+--
+
+Problem is due to common support. Without weighting, the treated group looks very different than the control group, and standard OLS (without weights) doesn't do anything to account for this.
 
 
 <!-- New Section -->

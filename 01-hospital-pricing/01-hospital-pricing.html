@@ -1559,6 +1559,17 @@ reg &lt;- lm(price ~ penalty + beds + mcaid_discharges + ip_charges + mcare_disc
 8. Regression 1-step: -5.85
 
 
+---
+# Summary of ATEs
+
+Why such large differences between linear (unweighted) regression and other approaches?
+
+
+--
+
+Problem is due to common support. Without weighting, the treated group looks very different than the control group, and standard OLS (without weights) doesn't do anything to account for this.
+
+
 &lt;!-- New Section --&gt;
 ---
 class: inverse, center, middle
