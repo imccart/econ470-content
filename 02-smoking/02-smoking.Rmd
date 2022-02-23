@@ -290,7 +290,7 @@ COV(Y,Z) & = E[YZ] - E[Y] E[Z] \\
 
 Working from $COV(Y,Z) = \delta COV(S,Z) + \gamma COV(A,Z) + COV(\epsilon,Z)$, we find
 
-$$\delta = \frac{COV(Y,Z)}{C(S,Z)}$$
+$$\delta = \frac{COV(Y,Z)}{COV(S,Z)}$$
 
 if $COV(A,Z)=COV(\epsilon, Z)=0$
 
@@ -337,6 +337,18 @@ and form prediction $\hat{D}_{i}$.
 
 <b>Step 2:</b> Regress $y_{i}$ on $x_{i}$ and $\hat{D}_{i}$,<br>
 $y_{i} = \alpha + \beta x_{i} + \delta \hat{D}_{i} + \xi_{i}$
+
+
+---
+# Derivation
+Recall $\hat{\theta}=\frac{C(Z,S)}{V(Z)}$, or $\hat{\theta}V(Z) = C(Y,Z)$. Then:
+
+$$\begin{align}
+\hat{\delta}  & = \frac{COV(Y,Z)}{COV(S,Z)} \\
+        & = \frac{\hat{\theta}C(Y,Z)}{\hat{\theta}C(S,Z)} = \frac{\hat{\theta}C(Y,Z)}{\hat{\theta}^{2}V(Z)} \\
+        & = \frac{C(\hat{\theta}Z,Y)}{V(\hat{\theta}Z)} = \frac{C(\hat{S},Y)}{V(\hat{S})}
+\end{align}$$
+
 
 ---
 # In regression terms
