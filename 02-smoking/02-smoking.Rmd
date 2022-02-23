@@ -242,15 +242,15 @@ $\frac{dy}{dx} = \beta + \frac{d\varepsilon}{dx} \neq \beta$
 ---
 # What does IV do?
 - The regression we want to do: <br>
-$y_{i} = \alpha + \delta W_{i} + \gamma A_{i} + \epsilon_{i}$,<br>
-where $W_{i}$ is treatment (think of schooling for now) and $A_{i}$ is something like ability.
+$y_{i} = \alpha + \delta D_{i} + \gamma A_{i} + \epsilon_{i}$,<br>
+where $D_{i}$ is treatment (think of schooling for now) and $A_{i}$ is something like ability.
 
 - $A_{i}$ is unobserved, so instead we run: <br>
-$y_{i} = \alpha + \beta W_{i} + \epsilon_{i}$
+$y_{i} = \alpha + \beta D_{i} + \epsilon_{i}$
 
 - From this "short" regression, we don't actually estimate $\delta$. Instead, we get an estimate of<br>
-$\beta = \delta + \lambda_{ws}\gamma \neq \delta$,<br>
-where $\lambda_{ws}$ is the coefficient of a regression of $A_{i}$ on $W_{i}$. 
+$\beta = \delta + \lambda_{ds}\gamma \neq \delta$,<br>
+where $\lambda_{ds}$ is the coefficient of a regression of $A_{i}$ on $D_{i}$. 
 
 ---
 # Intuition
@@ -264,13 +264,35 @@ IV will recover the "long" regression without observing underlying ability<br>
 ---
 # More formally
 - We want to estimate<br>
-$E[Y_{i} | W_{i}=1] - E[Y_{i} | W_{i}=0]$
+$E[Y_{i} | D_{i}=1] - E[Y_{i} | D_{i}=0]$
 
 - With instrument $Z_{i}$ that satisfies relevant assumptions, we can estimate this as<br>
-$E[Y_{i} | W_{i}=1] - E[Y_{i} | W_{i}=0] = \frac{E[Y_{i} | Z_{i}=1] - E[Y_{i} | Z_{i}=0]}{E[W_{i} | Z_{i}=1] - E[W_{i} | Z_{i}=0]}$
+$E[Y_{i} | D_{i}=1] - E[Y_{i} | D_{i}=0] = \frac{E[Y_{i} | Z_{i}=1] - E[Y_{i} | Z_{i}=0]}{E[D_{i} | Z_{i}=1] - E[D_{i} | Z_{i}=0]}$
 
-- In words, this is effect of the instrument on the outcome ("reduced form") divded by the effect of the instrument on treatment ("first stage")
+- In words, this is effect of the instrument on the outcome ("reduced form") divided by the effect of the instrument on treatment ("first stage")
 
+---
+# Derivation
+Recall "long" regression: $Y=\alpha + \delta S + \gamma A + \epsilon$.
+
+$$\begin{align}
+COV(Y,Z) & = E[YZ] - E[Y] E[Z] \\
+         & = E[(\alpha + \delta S + \gamma A + \epsilon)\times Z] - E[\alpha + \delta S + \gamma A + \epsilon)]E[Z] \\
+         & = \alpha E[Z] + \delta E[SZ] + \gamma E[AZ] + E[\epsilon Z] \\
+         & \hspace{.2in} - \alpha E[Z] - \delta E[S]E[Z] - \gamma E[A] E[Z] - E[\epsilon]E[Z] \\
+         & = \delta (E[SZ] - E[S] E[Z]) + \gamma (E[AZ] - E[A] E[Z]) \\
+         & \hspace{.2in} + E[\epsilon Z] - E[\epsilon] E[Z] \\
+         & = \delta C(S,Z) + \gamma C(A,Z) + C(\epsilon, Z)
+\end{align}$$
+
+---
+# Derivation
+
+Working from $COV(Y,Z) = \delta COV(S,Z) + \gamma COV(A,Z) + COV(\epsilon,Z)$, we find
+
+$$\delta = \frac{COV(Y,Z)}{C(S,Z)}$$
+
+if $COV(A,Z)=COV(\epsilon, Z)=0$
 
 ---
 # IVs in practice
@@ -301,20 +323,20 @@ Think of IV as two-steps:
 
 ---
 # In regression terms
-Interested in estimating $\delta$ from $y_{i} = \alpha + \beta x_{i} + \delta W_{i} + \varepsilon_{i}$, but $W_{i}$ is endogenous (no pure "selection on observables").
+Interested in estimating $\delta$ from $y_{i} = \alpha + \beta x_{i} + \delta D_{i} + \varepsilon_{i}$, but $D_{i}$ is endogenous (no pure "selection on observables").
 
 --
 <br>
 
-<b>Step 1:</b> With instrument $Z_{i}$, we can regress $W_{i}$ on $Z_{i}$ and $x_{i}$,<br>
-$W_{i} = \lambda + \theta Z_{i} + \kappa x_{i} + \nu$,<br>
-and form prediction $\hat{W}_{i}$.
+<b>Step 1:</b> With instrument $Z_{i}$, we can regress $D_{i}$ on $Z_{i}$ and $x_{i}$,<br>
+$D_{i} = \lambda + \theta Z_{i} + \kappa x_{i} + \nu$,<br>
+and form prediction $\hat{D}_{i}$.
 
 --
 <br>
 
-<b>Step 2:</b> Regress $y_{i}$ on $x_{i}$ and $\hat{W}_{i}$,<br>
-$y_{i} = \alpha + \beta x_{i} + \delta \hat{W}_{i} + \xi_{i}$
+<b>Step 2:</b> Regress $y_{i}$ on $x_{i}$ and $\hat{D}_{i}$,<br>
+$y_{i} = \alpha + \beta x_{i} + \delta \hat{D}_{i} + \xi_{i}$
 
 ---
 # In regression terms
@@ -323,7 +345,7 @@ But in practice, *DON'T* do this in two steps. Why?
 --
 <br>
 
-Because standard errors are wrong...not accounting for noise in prediction, $\hat{W}_{i}$. The appropriate fix is built into most modern stats programs.
+Because standard errors are wrong...not accounting for noise in prediction, $\hat{D}_{i}$. The appropriate fix is built into most modern stats programs.
 
 
 ---
@@ -388,8 +410,7 @@ p <- ggplot(dffull,aes(y=Y,x=X,color=as.factor(Z)))+geom_point()+
   exit_fade()+enter_fade()
 
 anim.iv <- animate(p,nframes=175)
-anim_save("iv_animate.gif",
-          anim.iv,path="D:/CloudStation/Professional/Teaching Material/Emory/Econ 470 - Economics and Health Policy/04-IV-Smoking/pics")
+anim_save("pics/iv_animate.gif", anim.iv)
 ```
 
 .center[
@@ -405,8 +426,8 @@ b.true <- 5.25
 iv.dat <- tibble(
   z = rnorm(n,0,2),
   eps = rnorm(n,0,1),
-  w = (z + 1.5*eps>0.15),
-  y = 2.5 + b.true*w + eps + rnorm(n,0,0.5)
+  d = (z + 1.5*eps + rnorm(n,0,1) >0.25),
+  y = 2.5 + b.true*d + eps + rnorm(n,0,0.5)
 )
 ```
 ]
@@ -421,14 +442,14 @@ iv.dat <- tibble(
 Recall that the *true* treatment effect is `r b.true`
 .pull-left[
 ```{r, echo=FALSE}
-summary(lm(y~w, data=iv.dat))
+summary(lm(y~d, data=iv.dat))
 ```
 ]
 
 
 .pull-right[
 ```{r, echo=FALSE}
-summary(ivreg(y ~ w | z, data=iv.dat))
+summary(ivreg(y ~ d | z, data=iv.dat))
 ```
 ]
 
@@ -437,7 +458,7 @@ summary(ivreg(y ~ w | z, data=iv.dat))
 .pull-left[
 - Check the 'first stage'
 ```{r, echo=FALSE}
-summary(lm(w~z, data=iv.dat))
+summary(lm(d~z, data=iv.dat))
 ```
 ]
 
@@ -452,11 +473,23 @@ summary(lm(y~z, data=iv.dat))
 ---
 # Two-stage equivalence
 ```{r}
-step1 <- lm(w ~ z, data=iv.dat)
-w.hat <- predict(step1)
-step2 <- lm(y ~ w.hat, data=iv.dat)
+step1 <- lm(d ~ z, data=iv.dat)
+d.hat <- predict(step1)
+step2 <- lm(y ~ d.hat, data=iv.dat)
 summary(step2)
 ```
+
+
+---
+# IV Diagnostics
+
+
+---
+# LATE and IV Interpretation
+
+
+---
+# Violation of IV Assumptions
 
 
 
