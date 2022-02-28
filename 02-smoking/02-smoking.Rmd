@@ -493,12 +493,65 @@ summary(step2)
 
 
 ---
-# IV Diagnostics
+# Do we need IV?
 
+- Let's run an "augmented regression" to see if our OLS results  sufficiently different than IV
+
+```{r}
+d.iv <- lm(d ~ z, data=iv.dat)
+d.resid <- residuals(d.iv)
+haus.test <- lm(y ~ d + d.resid, data=iv.dat)
+summary(haus.test)
+```
+
+- Test for significance of `d.resid` suggests OLS is inconsistent in this case
+
+
+---
+# Testing exclusion
+
+- Exclusion restriction says that your instrument does not directly affect your outcome
+- Potential testing ideas:
+  - "zero-first-stage" (subsample on which you know the instrument does not affect the endogenous variable)
+  - augmented regression of reduced-form effect with subset of instruments (overidentified models only)
+
+---
+# Testing exogeneity
+
+- Only available in over-identified models
+- Sargan or Hansen's J test (null hypothesis is that instruments are correlated with residuals)
+
+
+---
+# Testing strength of instruments
+
+.pull-left[
+**Single endogenous variable**
+- F-test of instruments
+- Partial $R^2$
+]
+
+.pull-right[
+**Many endogenous variables**
+- More complicated
+]
+
+---
+# Why we care about instrument strength
+
+Recall our schooling and wages equation, $$y = \beta S + \epsilon$$. Bias in IV can be represented as:
+
+$$Bias_{IV} \approx \frac{Cov(S, \epsilon)}{V(S)} \frac{1}{F+1} = Bias_{OLS} \frac{1}{F+1}$$
+
+- Bias in IV may be close to OLS, depending on instrument strength
+- **Bigger problem:** Bias could be bigger than OLS if exclusion restriction not *fully* satisfied
 
 ---
 # LATE and IV Interpretation
 
+- With monotonicity assumption (all those affected by the instrument are affected in the same "direction")
+- In the face of **heterogeneous treatment effects**, IV provides a "Local Average Treatment Effect"
+- LATE: Effect of treatment among those affected by the instrument (compliers only)
 
 ---
 # Violation of IV Assumptions
