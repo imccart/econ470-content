@@ -552,10 +552,7 @@ $$Bias_{IV} \approx \frac{Cov(S, \epsilon)}{V(S)} \frac{1}{F+1} = Bias_{OLS} \fr
 - With monotonicity assumption (all those affected by the instrument are affected in the same "direction")
 - In the face of **heterogeneous treatment effects**, IV provides a "Local Average Treatment Effect"
 - LATE: Effect of treatment among those affected by the instrument (compliers only)
-
----
-# Violation of IV Assumptions
-
+- Why does this matter? Let's discuss Medicaid expansion in Oregon
 
 
 <!-- New Section -->
