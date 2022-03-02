@@ -527,7 +527,7 @@ summary(haus.test)
 
 .pull-left[
 **Single endogenous variable**
-- F-test of instruments
+- F-test of instruments (rule of thumb critical value of 10)
 - Partial $R^2$
 ]
 
@@ -545,6 +545,8 @@ $$Bias_{IV} \approx \frac{Cov(S, \epsilon)}{V(S)} \frac{1}{F+1} = Bias_{OLS} \fr
 
 - Bias in IV may be close to OLS, depending on instrument strength
 - **Bigger problem:** Bias could be bigger than OLS if exclusion restriction not *fully* satisfied
+- Over-reliance on "rules of thumb", as seen in [Anders and Kasy (2019)](https://www.aeaweb.org/articles?id=10.1257/aer.20180310)
+
 
 ---
 # LATE and IV Interpretation
