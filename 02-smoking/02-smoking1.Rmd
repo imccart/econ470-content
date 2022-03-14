@@ -1,0 +1,181 @@
+---
+title: "Module 2: Demand for Cigarettes and Instrumental Variables"
+subtitle: "Part 1: CDC Data on Smoking and Cigarettes"
+author: Ian McCarthy | Emory University
+date: Econ 470 & HLTH 470 #"`r format(Sys.time(), '%d %B %Y')`"
+header-includes: 
+  - \usepackage{graphicx}
+  - \usepackage{amsmath}
+output:
+#  html_document: default  
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, custom.css] 
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      beforeInit: "macros.js"
+knit: pagedown::chrome_print   
+---
+
+<!-- Adjust some CSS code for font size and maintain R code font size -->
+<style type="text/css">
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+</style>
+
+
+<!-- Set R options for how code chunks are displayed and load packages -->
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(knitr)
+knitr::opts_chunk$set(
+  fig.align="center",  
+  fig.height=3, #fig.width=6,
+  # out.width="748px", #out.length="520.75px",
+  dpi=300, #fig.path='Figs/',
+  cache=T,# echo=F, warning=F, message=F
+  warning = FALSE, 
+  message = FALSE, 
+  cache.lazy = FALSE,
+  error=TRUE
+  )
+
+knitr::opts_hooks$set(fig.callout = function(options) {
+  if(options$fig.callout) {
+    options$echo = FALSE
+  }
+  options
+})
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
+               scales, plotly, gganimate, cobalt, ivpack, stargazer, ggthemes, here)
+```
+
+```{r xaringan-scribble, echo=FALSE}
+xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
+```
+
+
+# History of Smoking
+
+.center[
+  ![:scale 700px](https://media.giphy.com/media/TdQfYM6KpYQUM/giphy.gif)
+]
+
+---
+# History of Smoking
+- Widespread smoking began in late 1800s
+- Lung cancer becoming more common after 1930s
+- First evidence of link in 1950s
+- Surgeon general's report in 1964
+- Very important in causal inference! ([Section 5.1.1](https://mixtape.scunning.com/matching-and-subclassification.html#some-background) of Causal Inference Mixtape)
+
+---
+# Why it matters
+1. Extreme public health concerns
+  - Lung cancer prevalence
+  - Fetal and baby health
+  
+2. Economic questions
+  - Is it an information problem?
+  - Externalities (second-hand smoke)
+  - Moral hazard due to insurance
+  
+---
+# In our case
+We want to focus on estimating demand for cigarettes. By this, I mean estimating price elasticity of demand.
+
+--
+<br>
+
+We'll show that standard OLS isn't going to do this very well.
+
+<!-- New Section -->
+---
+class: inverse, center, middle
+name: smoking_data
+
+# Cigarette Data
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# The Data
+```{r eval=T, include=F}
+cig.data <- read_rds(here("data/TaxBurden_Data.rds"))
+```
+- Data from [CDC Tax Burden on Tobacco](https://data.cdc.gov/Policy/The-Tax-Burden-on-Tobacco-1970-2018/7nwe-3aj9/data)
+
+- Visit GitHub repository for other info: [Tobacco GitHub repository](https://github.com/imccart/CDC-Tobacco)
+
+- Supplement with CPI data, also in GitHub repo.
+
+---
+# Summary stats
+We're interested in cigarette prices and sales, so let's focus our summaries on those two variables
+```{r, results="asis"}
+stargazer(as.data.frame(cig.data %>% select(sales_per_capita, price_cpi, cost_per_pack)), type="html")
+```
+
+
+---
+# Cigarette Sales
+```{r cig-sales, eval=FALSE, warning=FALSE}
+cig.data %>% 
+  ggplot(aes(x=Year,y=sales_per_capita)) + 
+  stat_summary(fun.y="mean",geom="line") +
+  labs(
+    x="Year",
+    y="Packs per Capita",
+    title="Cigarette Sales"
+  ) + theme_bw() +
+  scale_x_continuous(breaks=seq(1970, 2020, 5))
+```
+.plot-callout[
+```{r cig-sales-callout, ref.label="cig-sales", fig.callout=TRUE, warning=FALSE}
+```
+]
+
+---
+# Cigarette Sales
+
+```{r cig-sales-output, ref.label="cig-sales", fig.callout=TRUE, warning=FALSE}
+```
+
+---
+# Cigarette Prices
+```{r cig-price, eval=FALSE, warning=FALSE}
+cig.data %>% 
+  ggplot(aes(x=Year,y=price_cpi)) + 
+  stat_summary(fun.y="mean",geom="line") +
+  labs(
+    x="Year",
+    y="Price per Pack ($)",
+    title="Cigarette Prices in 2010 Real Dollars"
+  ) + theme_bw() +
+  scale_x_continuous(breaks=seq(1970, 2020, 5))
+```
+.plot-callout[
+```{r cig-price-callout, ref.label="cig-price", fig.callout=TRUE, warning=FALSE}
+```
+]
+
+---
+# Cigarette Prices
+
+```{r cig-price-output, ref.label="cig-price", fig.callout=TRUE, warning=FALSE}
+```
+

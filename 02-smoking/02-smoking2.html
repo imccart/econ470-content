@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Module 2: Demand for Cigarettes and Instrumental Variables</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Ian McCarthy | Emory University" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#E68080"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Module 2: Demand for Cigarettes and Instrumental Variables
+## Part 2: Instrumental Variables
+### Ian McCarthy | Emory University
+### Econ 470 &amp; HLTH 470
+
+---
+
+
+&lt;!-- Adjust some CSS code for font size and maintain R code font size --&gt;
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+&lt;/style&gt;
+
+
+&lt;!-- Set R options for how code chunks are displayed and load packages --&gt;
+
+
+
+
+# What is instrumental variables
+Instrumental Variables (IV) is a way to identify causal effects using variation in treatment particpation that is due to an *exogenous* variable that is only related to the outcome through treatment.
+
+
+---
+# Why bother with IV?
+Two reasons to consider IV:
+1. Selection on unobservables
+2. Reverse causation
+
+--
+&lt;br&gt;
+
+Either problem is sometimes loosely referred to as *endogeneity*
+
+---
+# Simple example
+- `\(y = \beta x + \varepsilon (x)\)`,&lt;br&gt;
+where `\(\varepsilon(x)\)` reflects the dependence between our observed variable and the error term.&lt;br&gt;
+
+- Simple OLS will yield&lt;br&gt;
+`\(\frac{dy}{dx} = \beta + \frac{d\varepsilon}{dx} \neq \beta\)`
+
+
+---
+# What does IV do?
+- The regression we want to do: &lt;br&gt;
+`\(y_{i} = \alpha + \delta D_{i} + \gamma A_{i} + \epsilon_{i}\)`,&lt;br&gt;
+where `\(D_{i}\)` is treatment (think of schooling for now) and `\(A_{i}\)` is something like ability.
+
+- `\(A_{i}\)` is unobserved, so instead we run: &lt;br&gt;
+`\(y_{i} = \alpha + \beta D_{i} + \epsilon_{i}\)`
+
+- From this "short" regression, we don't actually estimate `\(\delta\)`. Instead, we get an estimate of&lt;br&gt;
+`\(\beta = \delta + \lambda_{ds}\gamma \neq \delta\)`,&lt;br&gt;
+where `\(\lambda_{ds}\)` is the coefficient of a regression of `\(A_{i}\)` on `\(D_{i}\)`. 
+
+---
+# Intuition
+IV will recover the "long" regression without observing underlying ability&lt;br&gt;
+
+--
+&lt;br&gt;
+
+*IF* our IV satisfies all of the necessary assumptions.
+
+---
+# More formally
+- We want to estimate&lt;br&gt;
+`\(E[Y_{i} | D_{i}=1] - E[Y_{i} | D_{i}=0]\)`
+
+- With instrument `\(Z_{i}\)` that satisfies relevant assumptions, we can estimate this as&lt;br&gt;
+`\(E[Y_{i} | D_{i}=1] - E[Y_{i} | D_{i}=0] = \frac{E[Y_{i} | Z_{i}=1] - E[Y_{i} | Z_{i}=0]}{E[D_{i} | Z_{i}=1] - E[D_{i} | Z_{i}=0]}\)`
+
+- In words, this is effect of the instrument on the outcome ("reduced form") divided by the effect of the instrument on treatment ("first stage")
+
+---
+# Derivation
+Recall "long" regression: `\(Y=\alpha + \delta S + \gamma A + \epsilon\)`.
+
+`$$\begin{align}
+COV(Y,Z) &amp; = E[YZ] - E[Y] E[Z] \\
+         &amp; = E[(\alpha + \delta S + \gamma A + \epsilon)\times Z] - E[\alpha + \delta S + \gamma A + \epsilon)]E[Z] \\
+         &amp; = \alpha E[Z] + \delta E[SZ] + \gamma E[AZ] + E[\epsilon Z] \\
+         &amp; \hspace{.2in} - \alpha E[Z] - \delta E[S]E[Z] - \gamma E[A] E[Z] - E[\epsilon]E[Z] \\
+         &amp; = \delta (E[SZ] - E[S] E[Z]) + \gamma (E[AZ] - E[A] E[Z]) \\
+         &amp; \hspace{.2in} + E[\epsilon Z] - E[\epsilon] E[Z] \\
+         &amp; = \delta C(S,Z) + \gamma C(A,Z) + C(\epsilon, Z)
+\end{align}$$`
+
+---
+# Derivation
+
+Working from `\(COV(Y,Z) = \delta COV(S,Z) + \gamma COV(A,Z) + COV(\epsilon,Z)\)`, we find
+
+`$$\delta = \frac{COV(Y,Z)}{COV(S,Z)}$$`
+
+if `\(COV(A,Z)=COV(\epsilon, Z)=0\)`
+
+---
+# IVs in practice
+Easy to think of in terms of randomized controlled trial...
+
+--
+&lt;br&gt;
+
+ Measure    | Offered Seat | Not Offered Seat | Difference 
+ ---------- | ------------ | ---------------- | ---------- 
+ Score      | -0.003       | -0.358           | 0.355      
+ % Enrolled | 0.787        | 0.046            | 0.741   
+ Effect     |              |                  | 0.48
+
+&lt;br&gt;
+
+.footnote[
+Angrist *et al.*, 2012. "Who Benefits from KIPP?" *Journal of Policy Analysis and Management*.
+] 
+
+
+---
+# What is IV *really* doing
+Think of IV as two-steps:
+
+1. Isolate variation due to the instrument only (not due to endogenous stuff)
+2. Estimate effect on outcome using only this source of variation
+
+---
+# In regression terms
+Interested in estimating `\(\delta\)` from `\(y_{i} = \alpha + \beta x_{i} + \delta D_{i} + \varepsilon_{i}\)`, but `\(D_{i}\)` is endogenous (no pure "selection on observables").
+
+--
+&lt;br&gt;
+
+&lt;b&gt;Step 1:&lt;/b&gt; With instrument `\(Z_{i}\)`, we can regress `\(D_{i}\)` on `\(Z_{i}\)` and `\(x_{i}\)`,&lt;br&gt;
+`\(D_{i} = \lambda + \theta Z_{i} + \kappa x_{i} + \nu\)`,&lt;br&gt;
+and form prediction `\(\hat{D}_{i}\)`.
+
+--
+&lt;br&gt;
+
+&lt;b&gt;Step 2:&lt;/b&gt; Regress `\(y_{i}\)` on `\(x_{i}\)` and `\(\hat{D}_{i}\)`,&lt;br&gt;
+`\(y_{i} = \alpha + \beta x_{i} + \delta \hat{D}_{i} + \xi_{i}\)`
+
+
+---
+# Derivation
+Recall `\(\hat{\theta}=\frac{C(Z,S)}{V(Z)}\)`, or `\(\hat{\theta}V(Z) = C(Y,Z)\)`. Then:
+
+`$$\begin{align}
+\hat{\delta}  &amp; = \frac{COV(Y,Z)}{COV(S,Z)} \\
+        &amp; = \frac{\hat{\theta}C(Y,Z)}{\hat{\theta}C(S,Z)} = \frac{\hat{\theta}C(Y,Z)}{\hat{\theta}^{2}V(Z)} \\
+        &amp; = \frac{C(\hat{\theta}Z,Y)}{V(\hat{\theta}Z)} = \frac{C(\hat{S},Y)}{V(\hat{S})}
+\end{align}$$`
+
+
+---
+# In regression terms
+But in practice, *DON'T* do this in two steps. Why?
+
+--
+&lt;br&gt;
+
+Because standard errors are wrong...not accounting for noise in prediction, `\(\hat{D}_{i}\)`. The appropriate fix is built into most modern stats programs.
+
+
+---
+# Key IV assumptions
+1. *Exclusion:* Instrument is uncorrelated with the error term&lt;br&gt;
+
+2. *Validity:* Instrument is correlated with the endogenous variable&lt;br&gt;
+
+3. *Monotonicity:* Treatment more (less) likely for those with higher (lower) values of the instrument&lt;br&gt;
+
+--
+&lt;br&gt;
+
+Assumptions 1 and 2 sometimes grouped into an *only through* condition.
+
+
+---
+# Animation for IV
+
+
+.center[
+  ![:scale 900px](pics/iv_animate.gif)
+]
+
+---
+# Simulated data
+.pull-left[
+
+```r
+n &lt;- 5000
+b.true &lt;- 5.25
+iv.dat &lt;- tibble(
+  z = rnorm(n,0,2),
+  eps = rnorm(n,0,1),
+  d = (z + 1.5*eps + rnorm(n,0,1) &gt;0.25),
+  y = 2.5 + b.true*d + eps + rnorm(n,0,0.5)
+)
+```
+]
+
+.pull-right[
+- endogenous `eps`: affects treatment and outcome
+- `z` is an instrument: affects treatment but no direct effect on outcome
+]
+
+---
+# Results with simulated data
+Recall that the *true* treatment effect is 5.25
+.pull-left[
+
+```
+## 
+## Call:
+## lm(formula = y ~ d, data = iv.dat)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -3.8090 -0.6703 -0.0104  0.6898  3.7293 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  2.08422    0.01977   105.4   &lt;2e-16 ***
+## dTRUE        6.16211    0.02914   211.4   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.027 on 4998 degrees of freedom
+## Multiple R-squared:  0.8994,	Adjusted R-squared:  0.8994 
+## F-statistic: 4.471e+04 on 1 and 4998 DF,  p-value: &lt; 2.2e-16
+```
+]
+
+
+.pull-right[
+
+```
+## 
+## Call:
+## ivreg(formula = y ~ d | z, data = iv.dat)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -4.182290 -0.736445 -0.009663  0.726962  4.167480 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  2.45751    0.02881    85.3   &lt;2e-16 ***
+## dTRUE        5.35060    0.05264   101.6   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.104 on 4998 degrees of freedom
+## Multiple R-Squared: 0.8838,	Adjusted R-squared: 0.8838 
+## Wald test: 1.033e+04 on 1 and 4998 DF,  p-value: &lt; 2.2e-16
+```
+]
+
+---
+# Checking instrument
+.pull-left[
+- Check the 'first stage'
+
+```
+## 
+## Call:
+## lm(formula = d ~ z, data = iv.dat)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.11348 -0.32880 -0.01652  0.32969  1.12071 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 0.463461   0.005666   81.79   &lt;2e-16 ***
+## z           0.150129   0.002868   52.34   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.4007 on 4998 degrees of freedom
+## Multiple R-squared:  0.354,	Adjusted R-squared:  0.3539 
+## F-statistic:  2739 on 1 and 4998 DF,  p-value: &lt; 2.2e-16
+```
+]
+
+.pull-right[
+- Check the 'reduced form'
+
+```
+## 
+## Call:
+## lm(formula = y ~ z, data = iv.dat)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -9.1588 -2.1484 -0.0716  2.1998  9.1674 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  4.93730    0.03993  123.64   &lt;2e-16 ***
+## z            0.80328    0.02021   39.74   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.823 on 4998 degrees of freedom
+## Multiple R-squared:  0.2401,	Adjusted R-squared:  0.2399 
+## F-statistic:  1579 on 1 and 4998 DF,  p-value: &lt; 2.2e-16
+```
+]
+
+
+---
+# Two-stage equivalence
+
+```r
+step1 &lt;- lm(d ~ z, data=iv.dat)
+d.hat &lt;- predict(step1)
+step2 &lt;- lm(y ~ d.hat, data=iv.dat)
+summary(step2)
+```
+
+```
+## 
+## Call:
+## lm(formula = y ~ d.hat, data = iv.dat)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -9.1588 -2.1484 -0.0716  2.1998  9.1674 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  2.45751    0.07369   33.35   &lt;2e-16 ***
+## d.hat        5.35060    0.13465   39.74   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.823 on 4998 degrees of freedom
+## Multiple R-squared:  0.2401,	Adjusted R-squared:  0.2399 
+## F-statistic:  1579 on 1 and 4998 DF,  p-value: &lt; 2.2e-16
+```
+
+
+---
+# Do we need IV?
+
+- Let's run an "augmented regression" to see if our OLS results are sufficiently different than IV
+
+
+```r
+d.iv &lt;- lm(d ~ z, data=iv.dat)
+d.resid &lt;- residuals(d.iv)
+haus.test &lt;- lm(y ~ d + d.resid, data=iv.dat)
+summary(haus.test)
+```
+
+```
+## 
+## Call:
+## lm(formula = y ~ d + d.resid, data = iv.dat)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -3.2972 -0.6308 -0.0150  0.6771  3.6037 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  2.45751    0.02564   95.83   &lt;2e-16 ***
+## dTRUE        5.35060    0.04686  114.19   &lt;2e-16 ***
+## d.resid      1.25628    0.05830   21.55   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.9826 on 4997 degrees of freedom
+## Multiple R-squared:  0.908,	Adjusted R-squared:  0.908 
+## F-statistic: 2.466e+04 on 2 and 4997 DF,  p-value: &lt; 2.2e-16
+```
+
+- Test for significance of `d.resid` suggests OLS is inconsistent in this case
+
+
+---
+# Testing exclusion
+
+- Exclusion restriction says that your instrument does not directly affect your outcome
+- Potential testing ideas:
+  - "zero-first-stage" (subsample on which you know the instrument does not affect the endogenous variable)
+  - augmented regression of reduced-form effect with subset of instruments (overidentified models only)
+
+---
+# Testing exogeneity
+
+- Only available in over-identified models
+- Sargan or Hansen's J test (null hypothesis is that instruments are correlated with residuals)
+
+
+---
+# Testing strength of instruments
+
+.pull-left[
+**Single endogenous variable**
+- F-test of instruments (rule of thumb critical value of 10)
+- Partial `\(R^2\)`
+]
+
+.pull-right[
+**Many endogenous variables**
+- More complicated
+]
+
+---
+# Why we care about instrument strength
+
+Recall our schooling and wages equation, `$$y = \beta S + \epsilon$$`. Bias in IV can be represented as:
+
+`$$Bias_{IV} \approx \frac{Cov(S, \epsilon)}{V(S)} \frac{1}{F+1} = Bias_{OLS} \frac{1}{F+1}$$`
+
+- Bias in IV may be close to OLS, depending on instrument strength
+- **Bigger problem:** Bias could be bigger than OLS if exclusion restriction not *fully* satisfied
+- Over-reliance on "rules of thumb", as seen in [Anders and Kasy (2019)](https://www.aeaweb.org/articles?id=10.1257/aer.20180310)
+
+
+---
+# LATE and IV Interpretation
+
+- With monotonicity assumption (all those affected by the instrument are affected in the same "direction")
+- In the face of **heterogeneous treatment effects**, IV provides a "Local Average Treatment Effect"
+- LATE: Effect of treatment among those affected by the instrument (compliers only)
+- Why does this matter? Let's discuss Medicaid expansion in Oregon
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
