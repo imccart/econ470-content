@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Module 1: Hospital Pricing and Selection on Observables</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Ian McCarthy | Emory University" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#E68080"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Module 1: Hospital Pricing and Selection on Observables
+## Part 3: Matching and Weighting
+### Ian McCarthy | Emory University
+### Econ 470 &amp; HLTH 470
+
+---
+
+
+&lt;!-- Adjust some CSS code for font size and maintain R code font size --&gt;
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+&lt;/style&gt;
+
+
+&lt;!-- Set R options for how code chunks are displayed and load packages --&gt;
+
+
+
+
+
+# Goal
+
+Find covariates `\(X_{i}\)` such that the following assumptions are plausible:
+
+
+1. Selection on observables: `$$Y_{0i}, Y_{1i} \perp\!\!\!\perp D_{i} | X_{i}$$`
+2. Common support: `$$0 &lt; \text{Pr}(D_{i}=1|X_{i}) &lt; 1$$`
+
+
+--
+
+
+Then we can use `\(X_{i}\)` to group observations and use expectations for control as the predicted counterfactuals among treated, and vice versa. 
+
+
+---
+# Assumption 1: Selection on Observables
+
+`\(E[Y_{1}|D,X]=E[Y_{1}|X]\)`
+
+
+--
+
+
+In words...nothing unobserved that determines treatment selection and affects your outcome of interest.
+
+
+---
+# Assumption 1: Selection on Observables
+
+- Example of selection on observables from *Mastering Metrics*
+
+
+---
+# Assumption 2: Common Support
+Someone of each type must be in both the treated and untreated groups
+
+--
+`$$0 &lt; \text{Pr}(D=1|X) &lt;1$$`
+
+
+
+
+---
+# Causal inference with observational data
+
+With selection on observables and common support:
+
+1. Subclassification
+2. Matching estimators
+3. Reweighting estimators
+4. Regression estimators
+
+
+
+---
+# Subclassification
+
+Sum the average treatment effects by group, and take a weighted average over those groups:
+
+`$$ATE=\sum_{i=1}^{N} P(X=x_{i}) \left(E[Y | X, D=1] - E[Y | X, D=0]\right)$$`
+
+---
+# Subclassification
+
+- Difference between treated and controls
+- Weighted average by probability of given group (proportion of sample)
+- What if outcome is unobserved for treatment or control group for a given subclass?
+
+
+--
+
+- This is the *curse of dimensionality*
+
+---
+# Matching: The process
+1. For each observation `\(i\)`, find the `\(m\)` "nearest" neighbors, `\(J_{m}(i)\)`. 
+2. Impute `\(\hat{Y}_{0i}\)` and `\(\hat{Y}_{1i}\)` for each observation:&lt;br&gt;
+`$$\hat{Y}_{0i} = \begin{cases}
+    Y_{i} &amp; \text{if} &amp; D_{i}=0 \\
+    \frac{1}{m} \sum_{j \in J_{m}(i)} Y_{j} &amp; \text{if} &amp; D_{i}=1 
+\end{cases}$$`
+`$$\hat{Y}_{1i} = \begin{cases}
+    Y_{i} &amp; \text{if} &amp; D_{i}=1 \\
+    \frac{1}{m} \sum_{j \in J_{m}(i)} Y_{j} &amp; \text{if} &amp; D_{i}=0 
+\end{cases}$$`
+
+3. Form "matched" ATE:&lt;br&gt;
+`\(\hat{\delta}^{\text{match}} = \frac{1}{N} \sum_{i=1}^{N} \left(\hat{Y}_{1i} - \hat{Y}_{0i} \right)\)`
+
+---
+# Matching: Defining "nearest"
+
+1. Euclidean distance:&lt;br&gt;
+`\(\sum_{k=1}^{K} (X_{ik} - X_{jk})^{2}\)`
+
+2. Scaled Euclidean distance:&lt;br&gt;
+`\(\sum_{k=1}^{K} \frac{1}{\sigma_{X_{k}}^{2}} (X_{ik} - X_{jk})^{2}\)`
+
+3. Mahalanobis distance:&lt;br&gt;
+`\((X_{i} - X_{j})' \Sigma_{X}^{-1} (X_{i} - X_{j})\)`
+
+---
+# Animation for matching
+
+
+.center[
+  ![:scale 900px](pics/match_animate.gif)
+]
+
+---
+# Matching: Defining "nearest"
+
+- But are observations really the same in each group?
+- Potential for "matching discrepancies" to introduce bias in estimates
+
+
+--
+
+- "Bias correction" based on `$$\hat{\mu}(x_{i}) - \hat{\mu}(x_{j(i)})$$` (i.e., difference in fitted values from regression of `\(y\)` on `\(x\)`, with the difference between observed `\(Y_{1i}\)` and imputed `\(Y_{0i}\)`)
+
+---
+# Weighting
+
+1. Estimate propensity score `ps &lt;- glm(D~X, family=binomial, data)`, denoted `\(\hat{\pi}(X_{i})\)`
+2. Weight by inverse of propensity score&lt;br&gt;
+.center[
+`\(\hat{\mu}_{1} = \frac{ \sum_{i=1}^{N} \frac{Y_{i} D_{i}}{\hat{\pi}(X_{i})} }{ \sum_{i=1}^{N} \frac{D_{i}}{\hat{\pi}(X_{i})} }\)` and 
+`\(\hat{\mu}_{0} = \frac{ \sum_{i=1}^{N} \frac{Y_{i} (1-D_{i})}{1-\hat{\pi}(X_{i})} }{ \sum_{i=1}^{N} \frac{1-D_{i}}{1-\hat{\pi}(X_{i})} }\)`
+]
+3. Form "inverse-propensity weighted" ATE:&lt;br&gt;
+.center[
+`\(\hat{\delta}^{IPW} = \hat{\mu}_{1} - \hat{\mu}_{0}\)`
+]
+
+---
+# Regression
+1. Regress `\(Y_{i}\)` on `\(X_{i}\)` among `\(D_{i}=1\)` to form `\(\hat{\mu}_{1}(X_{i})\)`
+2. Regress `\(Y_{i}\)` on `\(X_{i}\)` among `\(D_{i}=0\)` to form `\(\hat{\mu}_{0}(X_{i})\)`
+3. Form difference in predictions:&lt;br&gt;
+.center[
+`$$\hat{\delta}^{reg} = \frac{1}{N} \sum_{i=1}^{N} \left(\hat{\mu}_{1}(X_{i}) - \hat{\mu}_{0}(X_{i})\right)$$`
+]
+
+---
+# Regression
+
+Or estimate in one step, 
+.center[
+`$$Y_{i} = \delta D_{i} + \beta X_{i} + D_{i} \times \left(X_{i} - \bar{X}\right) \gamma + \varepsilon_{i}$$`
+]
+
+--
+
+- Note the `\((X_{i} - \bar{X})\)`. What does this do?
+
+---
+# Animation for regression
+
+
+.center[
+  ![:scale 900px](pics/reg_animate.gif)
+]
+
+
+---
+# Simulated data
+Now let's do some matching, re-weighting, and regression with simulated data:
+
+```r
+n &lt;- 5000
+select.dat &lt;- tibble(
+  x = runif(n, 0, 1),
+  z = rnorm(n, 0, 1),
+  w = (x&gt;0.65),
+  y = -2.5 + 4*w + 1.5*x + rnorm(n,0,1),
+  w_alt = ( x + z &gt; 0.35),
+  y_alt = -2.5 + 4*w_alt + 1.5*x + 2.25*z + rnorm(n,0,1)
+)
+```
+
+---
+# Simulation: nearest neighbor matching
+
+```r
+nn.est1 &lt;- Matching::Match(Y=select.dat$y,
+                            Tr=select.dat$w,
+                            X=select.dat$x,
+                            M=1,
+                            Weight=1,
+                            estimand="ATE")
+summary(nn.est1)
+```
+
+```
+## 
+## Estimate...  3.8785 
+## AI SE......  0.53145 
+## T-stat.....  7.298 
+## p.val......  2.9199e-13 
+## 
+## Original number of observations..............  5000 
+## Original number of treated obs...............  1731 
+## Matched number of observations...............  5000 
+## Matched number of observations  (unweighted).  5013
+```
+
+---
+# Simulation: nearest neighbor matching 
+
+```r
+nn.est2 &lt;- Matching::Match(Y=select.dat$y,
+                            Tr=select.dat$w,
+                            X=select.dat$x,
+                            M=1,
+*                           Weight=2,
+                            estimand="ATE")
+summary(nn.est2)
+```
+
+```
+## 
+## Estimate...  3.8785 
+## AI SE......  0.53145 
+## T-stat.....  7.298 
+## p.val......  2.9199e-13 
+## 
+## Original number of observations..............  5000 
+## Original number of treated obs...............  1731 
+## Matched number of observations...............  5000 
+## Matched number of observations  (unweighted).  5013
+```
+
+
+---
+# Simulation: regression
+
+```r
+reg1.dat &lt;- select.dat %&gt;% filter(w==1)
+reg1 &lt;- lm(y ~ x, data=reg1.dat)
+
+reg0.dat &lt;- select.dat %&gt;% filter(w==0)
+reg0 &lt;- lm(y ~ x, data=reg0.dat)
+pred1 &lt;- predict(reg1,new=select.dat)
+pred0 &lt;- predict(reg0,new=select.dat)
+mean(pred1-pred0)
+```
+
+```
+## [1] 4.126236
+```
+
+
+---
+# Violation of selection on observables
+.pull-left[
+&lt;u&gt;NN Matching&lt;/u&gt;
+
+```r
+nn.est3 &lt;- Matching::Match(Y=select.dat$y_alt,
+                            Tr=select.dat$w_alt,
+                            X=select.dat$x,
+                            M=1,
+                            Weight=2,
+                            estimand="ATE")
+summary(nn.est3)
+```
+
+```
+## 
+## Estimate...  7.6502 
+## AI SE......  0.053248 
+## T-stat.....  143.67 
+## p.val......  &lt; 2.22e-16 
+## 
+## Original number of observations..............  5000 
+## Original number of treated obs...............  2756 
+## Matched number of observations...............  5000 
+## Matched number of observations  (unweighted).  22555
+```
+]
+
+.pull-right[
+&lt;u&gt;Regression&lt;/u&gt;
+
+```r
+reg1.dat &lt;- select.dat %&gt;% filter(w_alt==1)
+reg1 &lt;- lm(y_alt ~ x, data=reg1.dat)
+
+reg0.dat &lt;- select.dat %&gt;% filter(w_alt==0)
+reg0 &lt;- lm(y_alt ~ x, data=reg0.dat)
+pred1_alt &lt;- predict(reg1,new=select.dat)
+pred0_alt &lt;- predict(reg0,new=select.dat)
+mean(pred1_alt-pred0_alt)
+```
+
+```
+## [1] 7.675315
+```
+]
+
+
+---
+# What covariates to use?
+
+- There are such things as "bad controls"
+- We want to avoid control variables that are:
+
+
+--
+
+- Outcomes of the treatment
+- Also endogenous (more generally)
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
