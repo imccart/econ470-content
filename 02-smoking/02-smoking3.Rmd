@@ -212,3 +212,33 @@ stargazer(first1, first2, first3, rf1, rf2, rf3,
 --
 <br>
 The National Bureau of Economic Researh (NBER) has a great resource [here](https://www.nber.org/econometrics_minicourse_2018/2018si_methods.pdf) for understanding instruments in practice.
+
+
+---
+# Quick IV Review
+
+1. When do we consider IV as a potential identification strategy?
+
+2. What are the main IV assumptions (and what do they mean)?
+
+3. How do we test for those assumptions?
+
+---
+# Review of IV and Homework 3 in R
+
+Some coding pointers to keep in mind:
+
+- Function for extracting top observations, `top_n` (negative values to look from the bottom up)
+- Syntax for `ivreg`, part of `ivpack`
+- Using `stargazer` for regression output
+
+---
+# Other points from weekly surveys
+
+- Examples of IV in real life
+  - Month of birth
+  - Vietnam lottery
+  - Medicaid lottery in Oregon
+  
+- Problem with compliers
+- Is a non-complier just in the control group?
