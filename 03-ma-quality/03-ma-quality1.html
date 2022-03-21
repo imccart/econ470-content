@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Module 3: Medicare Advantage Quality and Regression Discontinuity</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Ian McCarthy | Emory University" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#E68080"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Module 3: Medicare Advantage Quality and Regression Discontinuity
+## Part 1: MA Data and Quality Measurement
+### Ian McCarthy | Emory University
+### Econ 470 &amp; HLTH 470
+
+---
+
+
+&lt;!-- Adjust some CSS code for font size and maintain R code font size --&gt;
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+&lt;/style&gt;
+
+
+&lt;!-- Set R options for how code chunks are displayed and load packages --&gt;
+
+
+
+
+
+# What is Medicare Advantage
+- Private provision of health insurance for Medicare beneficiaries
+- Medicare "replacement" plans &lt;br&gt;
+
+--
+- It's just private insurance for Medicare folks
+
+---
+# Medicare Advantage History
+- Existed since 1980s, formalized in the 1990s, expanded in 2000s
+- Medicare+Choice as part of Balanced Budget Act in 1997
+- Largest expansion: Medicare Modernization Act in 2003 (also brought Medicare Part D)
+
+---
+# Medicare Advantage Details
+In its current form...
+- Insurers submit plan details and a price needed to cover traditional Medicare ("bid")
+- If approved, Medicare pays risk-adjusted bid *or* benchmark
+- Bid `\(&lt;\)` benchmark, insurer gets a rebate
+- Bid `\(&gt;\)` benchmark, insurer charges premium
+- Seperate bidding for Part D
+
+---
+# Medicare Advantage in Real Life
+Let's take a look at the Medicare Advantage plan options...
+
+--
+&lt;br&gt;
+[Medicare Plan Finder](https://www.medicare.gov/plan-compare/)
+
+
+---
+# Medicare Advantage Quality Ratings
+- Initial MA Star Ratings (2007)
+- Overall rating introduced in 2009
+- Complicated formula...&lt;br&gt;
+
+--
+&lt;br&gt;
+
+&lt;b&gt;key point:&lt;/b&gt; ratings from several domains are averaged and then rounded
+
+
+
+# Medicare Advantage Data
+- Recall the Medicare Advantage repository, [Medicare Advantage GitHub repository](https://github.com/imccart-test/ma)
+
+--
+&lt;br&gt;
+
+- Now we need to work with the **final** dataset
+
+---
+# Final MA Data
+
+```r
+ma.data &lt;- read_rds(here("data/final_ma_data.rds"))
+```
+
+
+---
+# Summary stats
+Focus on enrollments and star ratings:
+
+```r
+stargazer(as.data.frame(ma.data %&gt;% select(avg_enrollment, avg_eligibles, Star_Rating)), type="html")
+```
+
+
+&lt;table style="text-align:center"&gt;&lt;tr&gt;&lt;td colspan="8" style="border-bottom: 1px solid black"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style="text-align:left"&gt;Statistic&lt;/td&gt;&lt;td&gt;N&lt;/td&gt;&lt;td&gt;Mean&lt;/td&gt;&lt;td&gt;St. Dev.&lt;/td&gt;&lt;td&gt;Min&lt;/td&gt;&lt;td&gt;Pctl(25)&lt;/td&gt;&lt;td&gt;Pctl(75)&lt;/td&gt;&lt;td&gt;Max&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td colspan="8" style="border-bottom: 1px solid black"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style="text-align:left"&gt;planid&lt;/td&gt;&lt;td&gt;895,495&lt;/td&gt;&lt;td&gt;35.849&lt;/td&gt;&lt;td&gt;69.789&lt;/td&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;4&lt;/td&gt;&lt;td&gt;41&lt;/td&gt;&lt;td&gt;999&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style="text-align:left"&gt;avg_enrollment&lt;/td&gt;&lt;td&gt;204,173&lt;/td&gt;&lt;td&gt;397.404&lt;/td&gt;&lt;td&gt;1,578.641&lt;/td&gt;&lt;td&gt;11.000&lt;/td&gt;&lt;td&gt;31.250&lt;/td&gt;&lt;td&gt;231.667&lt;/td&gt;&lt;td&gt;63,234.080&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style="text-align:left"&gt;avg_eligibles&lt;/td&gt;&lt;td&gt;749,267&lt;/td&gt;&lt;td&gt;42,587.920&lt;/td&gt;&lt;td&gt;98,741.840&lt;/td&gt;&lt;td&gt;11.571&lt;/td&gt;&lt;td&gt;3,798.000&lt;/td&gt;&lt;td&gt;37,116.570&lt;/td&gt;&lt;td&gt;1,355,734.000&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style="text-align:left"&gt;Star_Rating&lt;/td&gt;&lt;td&gt;448,793&lt;/td&gt;&lt;td&gt;3.307&lt;/td&gt;&lt;td&gt;0.783&lt;/td&gt;&lt;td&gt;1.500&lt;/td&gt;&lt;td&gt;2.500&lt;/td&gt;&lt;td&gt;4.000&lt;/td&gt;&lt;td&gt;5.000&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td colspan="8" style="border-bottom: 1px solid black"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+
+---
+# Clean the data
+Limit to plans with:
+- Observed enrollments, `\(&gt;\)` 10
+- First year of star rating (2009)
+- Observed star rating
+
+--
+&lt;br&gt;
+
+
+```r
+ma.data.clean &lt;- ma.data %&gt;%
+* filter(!is.na(avg_enrollment) &amp; year==2009 &amp; !is.na(partc_score))
+```
+
+---
+# Calculate raw average rating
+
+```r
+ma.data.clean &lt;- ma.data.clean %&gt;%
+  mutate(raw_rating=rowMeans(
+    cbind(breastcancer_screen,rectalcancer_screen,cv_cholscreen,diabetes_cholscreen,
+          glaucoma_test,monitoring,flu_vaccine,pn_vaccine,physical_health,
+          mental_health,osteo_test,physical_monitor,primaryaccess,
+          hospital_followup,depression_followup,nodelays,carequickly,
+          overallrating_care,overallrating_plan,calltime,
+          doctor_communicate,customer_service,osteo_manage,
+          diabetes_eye,diabetes_kidney,diabetes_bloodsugar,
+          diabetes_chol,antidepressant,bloodpressure,ra_manage,
+          copd_test,betablocker,bladder,falling,appeals_timely,
+          appeals_review),
+    na.rm=T)) %&gt;%
+  select(contractid, planid, fips, avg_enrollment, first_enrollment,
+         last_enrollment, state, county, raw_rating, partc_score,
+         avg_eligibles, avg_enrolled, premium_partc, risk_ab, Star_Rating,
+         bid, avg_ffscost, ma_rate)
+```
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

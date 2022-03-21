@@ -1,0 +1,176 @@
+---
+title: "Module 3: Medicare Advantage Quality and Regression Discontinuity"
+subtitle: "Part 1: MA Data and Quality Measurement"
+author: Ian McCarthy | Emory University
+date: Econ 470 & HLTH 470 #"`r format(Sys.time(), '%d %B %Y')`"
+header-includes: 
+  - \usepackage{graphicx}
+  - \usepackage{amsmath}
+output:
+#  html_document: default
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, custom.css] 
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      beforeInit: "macros.js"
+knit: pagedown::chrome_print
+---
+
+<!-- Adjust some CSS code for font size and maintain R code font size -->
+<style type="text/css">
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+</style>
+
+
+<!-- Set R options for how code chunks are displayed and load packages -->
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(knitr)
+knitr::opts_chunk$set(
+  fig.align="center",  
+  fig.height=3, #fig.width=6,
+  # out.width="748px", #out.length="520.75px",
+  dpi=300, #fig.path='Figs/',
+  cache=T,# echo=F, warning=F, message=F
+  warning = FALSE, 
+  message = FALSE, 
+  cache.lazy=FALSE,
+  error=TRUE
+  )
+
+knitr::opts_hooks$set(fig.callout = function(options) {
+  if(options$fig.callout) {
+    options$echo = FALSE
+  }
+  options
+})
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
+               scales, plotly, gganimate, cobalt, ivpack, stargazer, haven, ggthemes,
+               gifski, magick, rdrobust, here)
+set.seed(1234)
+```
+
+```{r xaringan-scribble, echo=FALSE}
+xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
+```
+
+
+# What is Medicare Advantage
+- Private provision of health insurance for Medicare beneficiaries
+- Medicare "replacement" plans <br>
+
+--
+- It's just private insurance for Medicare folks
+
+---
+# Medicare Advantage History
+- Existed since 1980s, formalized in the 1990s, expanded in 2000s
+- Medicare+Choice as part of Balanced Budget Act in 1997
+- Largest expansion: Medicare Modernization Act in 2003 (also brought Medicare Part D)
+
+---
+# Medicare Advantage Details
+In its current form...
+- Insurers submit plan details and a price needed to cover traditional Medicare ("bid")
+- If approved, Medicare pays risk-adjusted bid *or* benchmark
+- Bid $<$ benchmark, insurer gets a rebate
+- Bid $>$ benchmark, insurer charges premium
+- Seperate bidding for Part D
+
+---
+# Medicare Advantage in Real Life
+Let's take a look at the Medicare Advantage plan options...
+
+--
+<br>
+[Medicare Plan Finder](https://www.medicare.gov/plan-compare/)
+
+
+---
+# Medicare Advantage Quality Ratings
+- Initial MA Star Ratings (2007)
+- Overall rating introduced in 2009
+- Complicated formula...<br>
+
+--
+<br>
+
+<b>key point:</b> ratings from several domains are averaged and then rounded
+
+
+
+# Medicare Advantage Data
+- Recall the Medicare Advantage repository, [Medicare Advantage GitHub repository](https://github.com/imccart-test/ma)
+
+--
+<br>
+
+- Now we need to work with the **final** dataset
+
+---
+# Final MA Data
+```{r eval=T, include=T}
+ma.data <- read_rds(here("data/final_ma_data.rds"))
+```
+
+
+---
+# Summary stats
+Focus on enrollments and star ratings:
+```{r, results="asis"}
+stargazer(as.data.frame(ma.data %>% select(avg_enrollment, avg_eligibles, Star_Rating)), type="html")
+```
+
+
+---
+# Clean the data
+Limit to plans with:
+- Observed enrollments, $>$ 10
+- First year of star rating (2009)
+- Observed star rating
+
+--
+<br>
+
+```{r}
+ma.data.clean <- ma.data %>%
+  filter(!is.na(avg_enrollment) & year==2009 & !is.na(partc_score)) #<<
+```
+
+---
+# Calculate raw average rating
+```{r}
+ma.data.clean <- ma.data.clean %>%
+  mutate(raw_rating=rowMeans(
+    cbind(breastcancer_screen,rectalcancer_screen,cv_cholscreen,diabetes_cholscreen,
+          glaucoma_test,monitoring,flu_vaccine,pn_vaccine,physical_health,
+          mental_health,osteo_test,physical_monitor,primaryaccess,
+          hospital_followup,depression_followup,nodelays,carequickly,
+          overallrating_care,overallrating_plan,calltime,
+          doctor_communicate,customer_service,osteo_manage,
+          diabetes_eye,diabetes_kidney,diabetes_bloodsugar,
+          diabetes_chol,antidepressant,bloodpressure,ra_manage,
+          copd_test,betablocker,bladder,falling,appeals_timely,
+          appeals_review),
+    na.rm=T)) %>%
+  select(contractid, planid, fips, avg_enrollment, first_enrollment,
+         last_enrollment, state, county, raw_rating, partc_score,
+         avg_eligibles, avg_enrolled, premium_partc, risk_ab, Star_Rating,
+         bid, avg_ffscost, ma_rate)
+```
+
