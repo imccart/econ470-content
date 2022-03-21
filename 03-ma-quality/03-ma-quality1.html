@@ -52,7 +52,7 @@ class: center, middle, inverse, title-slide
 - Medicare "replacement" plans &lt;br&gt;
 
 --
-- It's just private insurance for Medicare folks
+- It's just private insurance for those eligible for Medicare
 
 ---
 # Medicare Advantage History
@@ -82,21 +82,50 @@ Let's take a look at the Medicare Advantage plan options...
 # Medicare Advantage Quality Ratings
 - Initial MA Star Ratings (2007)
 - Overall rating introduced in 2009
-- Complicated formula...&lt;br&gt;
+- Complicated formula...
+
 
 --
-&lt;br&gt;
 
-&lt;b&gt;key point:&lt;/b&gt; ratings from several domains are averaged and then rounded
+- **key point:** ratings from several domains are averaged and then rounded
+- More details available [here](https://www.cms.gov/Medicare/Prescription-Drug-Coverage/PrescriptionDrugCovGenIn/PerformanceData)
 
 
+---
+# Role of Quality Ratings
 
+- Potentially affect plan choice
+- Quality bonus program in 2012
+  - Demonstration program at first (2012 through 2015)
+  - ACA quality bonus payments begin 2015
+  
+---
+# Details of QBP
+
+Eligible plans may receive two bonuses:
+
+1. Benchmark bonus: Increased benchmark payment of up to 5\%
+2. Rebate bonus: Share of bid-benchmark differential going back to insurer (from 50% up to 70%)
+
+
+--
+
+- Applied to plans with 3-stars and above from 2012-2015 (demonstration period)
+- Applied to plans with 4-stars and above beginning 2015 
+
+
+---
+# Some good primers
+
+- [KFF Bonus Payment Illustration](pics/kff-illustration.pdf)
+- [2021 Star Ratings and Bonus Payments](https://www.kff.org/medicare/issue-brief/medicare-advantage-in-2021-star-ratings-and-bonuses/)
+
+---
 # Medicare Advantage Data
 - Recall the Medicare Advantage repository, [Medicare Advantage GitHub repository](https://github.com/imccart-test/ma)
 
---
-&lt;br&gt;
 
+--
 - Now we need to work with the **final** dataset
 
 ---
@@ -162,6 +191,61 @@ ma.data.clean &lt;- ma.data.clean %&gt;%
          avg_eligibles, avg_enrolled, premium_partc, risk_ab, Star_Rating,
          bid, avg_ffscost, ma_rate)
 ```
+
+
+---
+# Distribution of star ratings
+
+
+```r
+ma.data.clean %&gt;% 
+  ggplot(aes(x=as.factor(Star_Rating))) + 
+  geom_bar() +
+  labs(
+    x="Star Rating",
+    y="Count of Plans",
+    title="Frequency Distribution of Star Ratings"
+  ) + theme_bw()
+```
+.plot-callout[
+&lt;img src="03-ma-quality1_files/figure-html/rating-count-callout-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+# Distribution of star ratings
+
+&lt;img src="03-ma-quality1_files/figure-html/rating-count-output-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# Enrollments and star ratings
+
+```
+## 
+## Call:
+## lm(formula = avg_enrollment ~ factor(Star_Rating), data = ma.data.clean)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+##   -627   -388   -214    -51  41908 
+## 
+## Coefficients:
+##                        Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)               87.31      43.32   2.016  0.04387 *  
+## factor(Star_Rating)2      32.75      50.62   0.647  0.51758    
+## factor(Star_Rating)2.5   194.65      47.15   4.128 3.67e-05 ***
+## factor(Star_Rating)3     433.95      49.84   8.707  &lt; 2e-16 ***
+## factor(Star_Rating)3.5   470.91      53.47   8.808  &lt; 2e-16 ***
+## factor(Star_Rating)4     552.30      57.91   9.538  &lt; 2e-16 ***
+## factor(Star_Rating)4.5   272.36      82.68   3.294  0.00099 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1440 on 17451 degrees of freedom
+## Multiple R-squared:  0.01559,	Adjusted R-squared:  0.01526 
+## F-statistic: 46.07 on 6 and 17451 DF,  p-value: &lt; 2.2e-16
+```
+
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
