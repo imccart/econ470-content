@@ -125,12 +125,12 @@ Highly relevant in "rule-based" world...
 
 ---
 # Estimation
-Goal is to estimate `\(E[Y(1)|X=c] - E[Y(0)|X=c]\)`
+Goal is to estimate `\(E[Y_{1}|X=c] - E[Y_{0}|X=c]\)`
 1. Trim to reasonable window around threshold ("bandwidth"), `\(X \in [c-h, c+h]\)`
 2. Transform running variable, `\(\tilde{X}=X-c\)`
 3. Estimate regressions...
-  - Linear, same slope: `\(y = \alpha + \delta W + \beta \tilde{X} + \varepsilon\)`
-  - Linear, different slope: `\(y = \alpha + \delta W + \beta \tilde{X} + \gamma W\tilde{X} + \varepsilon\)`
+  - Linear, same slope: `\(y = \alpha + \delta D + \beta \tilde{X} + \varepsilon\)`
+  - Linear, different slope: `\(y = \alpha + \delta D + \beta \tilde{X} + \gamma W\tilde{X} + \varepsilon\)`
   - Nonlinear: add polynomials in `\(\tilde{X}\)` and interactions `\(W \tilde{X}\)`
 
 
@@ -173,8 +173,6 @@ rd.result &lt;- rdplot(rd.dat$Y, rd.dat$X,
                     x.label="Running Variable", 
                     y.label="Outcome")
 ```
-
-&lt;img src="03-ma-quality2_files/figure-html/unnamed-chunk-1-1.png" style="display: block; margin: auto;" /&gt;
 
 ```r
 bin.avg &lt;- as_tibble(rd.result$vars_bins)
