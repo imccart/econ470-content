@@ -351,7 +351,7 @@ If F-test suggests significance, then we have too few bins and need to narrow th
 # Selecting bandwidth in local linear regression
 The bandwidth is a "tuning parameter"
 - High $h$ means high bias but lower variance (use more of the data, closer to OLS)
-- Low $h$h means low bias but higher variance (use less data, more focused around discontinuity)<br>
+- Low $h$ means low bias but higher variance (use less data, more focused around discontinuity)<br>
 
 --
 
@@ -414,6 +414,8 @@ rd <- lm(Y~x_dev + W, data=rd.dat3)
 ---
 # Covariate balance
 
+---
+# Pitfalls of polynomials
 
 
 <!-- New Section -->
