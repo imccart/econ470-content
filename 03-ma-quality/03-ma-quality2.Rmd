@@ -85,6 +85,13 @@ Highly relevant in "rule-based" world...
 - Performance scores rounded to nearest integer
 
 ---
+# Required elements
+
+1. Score
+2. Cutoff
+3. Treatment
+
+---
 # Types of RD
 1. Sharp regression discontinuity
   - those above the threshold guaranteed to participate<br>
@@ -333,7 +340,7 @@ where $K(u)$ is a kernel that assigns weight to observations based on the distan
 
 ---
 # Selecting "bin" width
-1. Dummy variables: Create dummies for each bin, regress the outcome on the set of all dummies $R^{2}_{r}$, repeat with double the number of bins and find r-square value $R^{2}_{u}$, form F-stat, $\frac{R^{2}_{u}-R^{2}_{r}}{1-R^{2}_{u}}\times \frac{n-K-1}{K}$.
+1. Dummy variables: Create dummies for each bin, regress the outcome on the set of all dummies and form r-square $R^{2}_{r}$, repeat with double the number of bins and find r-square value $R^{2}_{u}$, form F-stat, $\frac{R^{2}_{u}-R^{2}_{r}}{1-R^{2}_{u}}\times \frac{n-K-1}{K}$.
 
 2. Interaction terms: Include interactions between dummies and the running variable, joint F-test for the interaction terms
 
@@ -353,12 +360,12 @@ Represent bias-variance tradeoff with the mean-square error, $$MSE(h) = E[(\hat{
 ---
 # Selecting bandwidth
 In the RD case, we have two different mean-square error terms:
-1. "From above", $MSE_{+}(h) = E[(\hat{\mu}_{+}(c,h) - E[Y_{i}(1)|X_{i}=c])^2]$
-2. "From below", $MSE_{-}(h) = E[(\hat{\mu}_{-}(c,h) - E[Y_{i}(0)|X_{i}=c])^2]$<br>
+1. "From above", $MSE_{+}(h) = E[(\hat{\mu}_{+}(c,h) - E[Y_{1i}|X_{i}=c])^2]$
+2. "From below", $MSE_{-}(h) = E[(\hat{\mu}_{-}(c,h) - E[Y_{0i}|X_{i}=c])^2]$<br>
 
 --
 
-Goal is to find $h$ that minimizes these values, but we don't know the true $E[Y(1)|X=c]$ and $E[Y(0)|X=c]$. So we have two approaches:
+Goal is to find $h$ that minimizes these values, but we don't know the true $E[Y_{1}|X=c]$ and $E[Y_{0}|X=c]$. So we have two approaches:
 1. Use **cross-validation** to choose $h$  
 2. Explicitly solve for optimal bandwidth 
 
@@ -377,15 +384,7 @@ Select $h$ with lowest $CV(h)$ value.
 ---
 # Back to simulated data
 ```{r rd-real1, echo=FALSE}
-n=10000
-rd.dat2 <- tibble(
-  eps = rnorm(n,0,.3),
-  Z = rnorm(n,0,1)+eps,
-  X = runif(n,0,2)+eps,
-  W = (X>1),
-  Y = 0.5 + 2*X + 4*W + eps + rnorm(n,0,.5) + 1.5*Z - Z^2
-)
-rd.dat2 %>% ggplot(aes(x=X,y=Y)) + 
+rd.dat %>% ggplot(aes(x=X,y=Y)) + 
   geom_point() + theme_bw() +
   geom_vline(aes(xintercept=1),linetype='dashed') +
   scale_x_continuous(
@@ -398,16 +397,23 @@ rd.dat2 %>% ggplot(aes(x=X,y=Y)) +
 ---
 # Back to simulated data
 ```{r}
-ols <- lm(Y~X+W, data=rd.dat2)
+ols <- lm(Y~X+W, data=rd.dat)
 
-rd.dat3 <- rd.dat2 %>%
+rd.dat3 <- rd.dat %>%
   mutate(x_dev = X-1) %>%
   filter( (X>0.8 & X <1.2) )
 rd <- lm(Y~x_dev + W, data=rd.dat3)
 ```
-- True effect: 4
+- True effect: 1.5
 - Standard linear regression with same slopes: `r round(ols$coef[3],2)`
 - RD (linear with same slopes): `r round(rd$coef[3],2)`
+
+---
+# Manipulation of running variable
+
+---
+# Covariate balance
+
 
 
 <!-- New Section -->
@@ -430,7 +436,7 @@ name: fuzzy_rd
 # Fuzzy RD is IV
 In practice, fuzzy RD is employed as an instrumental variables estimator
 - Difference in outcomes among those above and below the discontinuity divided by the difference in treatment probabilities for those above and below the discontinuity,<br>
-$E[Y_{i} | W_{i}=1] - E[Y_{i} | W_{i}=0] = \frac{E[Y_{i} | x_{i}\geq c] - E[Y_{i} | x_{i}< c]}{E[W_{i} | x_{i}\geq c] - E[W_{i} | x_{i}<c]}$
-- Indicator for $x_{i}\geq c$ is an instrument for treatment status, $W_{i}$.
+$E[Y_{i} | D_{i}=1] - E[Y_{i} | D_{i}=0] = \frac{E[Y_{i} | x_{i}\geq c] - E[Y_{i} | x_{i}< c]}{E[D_{i} | x_{i}\geq c] - E[D_{i} | x_{i}<c]}$
+- Indicator for $x_{i}\geq c$ is an instrument for treatment status, $D_{i}$.
 
 
