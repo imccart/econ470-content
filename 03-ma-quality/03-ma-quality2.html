@@ -298,12 +298,30 @@ rd &lt;- lm(Y~x_dev + W, data=rd.dat3)
 ---
 # Manipulation of running variable
 
+- What if firms or individuals can control whether they fall just above or below the threshold?
+- Test for this by inspecting the PDF of the running variable
+- Jump in density at threshold suggests manipulation
+
+
 ---
 # Covariate balance
+
+- If RD is an appropriate design, units should be very similar above and below threshold
+- How do we test for this?
+
+
+--
+- Covariate balance (love plots from Module 1)
+
 
 ---
 # Pitfalls of polynomials
 
+- Assign too much weight to points away from the cutoff
+- Results **highly** sensitive to degree of polynomial
+- Narrow confidence intervals (over-rejection of the null)
+
+For more discussion, see this [World Bank Blog post](https://blogs.worldbank.org/impactevaluations/curves-all-wrong-places-gelman-and-imbens-why-not-use-higher-order-polynomials-rd)
 
 &lt;!-- New Section --&gt;
 ---
