@@ -183,9 +183,9 @@ CMS does more than just an average...
 ```r
 ma.rd1 &lt;- ma.rd1 %&gt;%
   mutate(score = raw_rating - 2.25,
-         treat = (Star_Rating==2.5),
-         window1 = (score&gt;-.175 &amp; score&lt;.175),
-         window2 = (score&gt;-.125 &amp; score&lt;.125),
+         treat = (score&gt;=0),
+         window1 = (score&gt;=-.175 &amp; score&lt;=.175),
+         window2 = (score&gt;=-.125 &amp; score&lt;=.125),
          mkt_share = avg_enrollment/avg_eligibles,
          ln_share = log(mkt_share),
          score_treat=score*treat)
@@ -206,12 +206,12 @@ est4 &lt;- as.numeric(star25.4$coef[3])
 &lt;tr&gt;&lt;td style="text-align:left"&gt;&lt;/td&gt;&lt;td&gt;(1)&lt;/td&gt;&lt;td&gt;(2)&lt;/td&gt;&lt;td&gt;(3)&lt;/td&gt;&lt;td&gt;(4)&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td colspan="5" style="border-bottom: 1px solid black"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style="text-align:left"&gt;Raw Score&lt;/td&gt;&lt;td&gt;0.030&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;-0.044&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;-0.066&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;-0.085&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td style="text-align:left"&gt;&lt;/td&gt;&lt;td&gt;(0.002)&lt;/td&gt;&lt;td&gt;(0.009)&lt;/td&gt;&lt;td&gt;(0.012)&lt;/td&gt;&lt;td&gt;(0.013)&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td style="text-align:left"&gt;Treatment&lt;/td&gt;&lt;td&gt;-0.008&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;0.009&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;0.008&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;0.012&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style="text-align:left"&gt;Treatment&lt;/td&gt;&lt;td&gt;-0.008&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;0.009&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;0.008&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;0.006&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td style="text-align:left"&gt;&lt;/td&gt;&lt;td&gt;(0.001)&lt;/td&gt;&lt;td&gt;(0.002)&lt;/td&gt;&lt;td&gt;(0.002)&lt;/td&gt;&lt;td&gt;(0.002)&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td style="text-align:left"&gt;Score x Treat&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;0.049&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;-0.023&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td style="text-align:left"&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;(0.019)&lt;/td&gt;&lt;td&gt;(0.027)&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style="text-align:left"&gt;Score x Treat&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;0.049&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;td&gt;0.125&lt;sup&gt;***&lt;/sup&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style="text-align:left"&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;(0.019)&lt;/td&gt;&lt;td&gt;(0.026)&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td colspan="5" style="border-bottom: 1px solid black"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style="text-align:left"&gt;Bandwith&lt;/td&gt;&lt;td&gt;0.5&lt;/td&gt;&lt;td&gt;0.175&lt;/td&gt;&lt;td&gt;0.175.&lt;/td&gt;&lt;td&gt;0.125&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td style="text-align:left"&gt;Observations&lt;/td&gt;&lt;td&gt;9,006&lt;/td&gt;&lt;td&gt;3,095&lt;/td&gt;&lt;td&gt;3,095&lt;/td&gt;&lt;td&gt;2,937&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style="text-align:left"&gt;Observations&lt;/td&gt;&lt;td&gt;9,006&lt;/td&gt;&lt;td&gt;3,095&lt;/td&gt;&lt;td&gt;3,095&lt;/td&gt;&lt;td&gt;2,962&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td colspan="5" style="border-bottom: 1px solid black"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style="text-align:left"&gt;&lt;em&gt;Note:&lt;/em&gt;&lt;/td&gt;&lt;td colspan="4" style="text-align:right"&gt;&lt;sup&gt;*&lt;/sup&gt;p&lt;0.1; &lt;sup&gt;**&lt;/sup&gt;p&lt;0.05; &lt;sup&gt;***&lt;/sup&gt;p&lt;0.01&lt;/td&gt;&lt;/tr&gt;
 &lt;/table&gt;
 
@@ -221,7 +221,7 @@ est4 &lt;- as.numeric(star25.4$coef[3])
 
 - OLS on full sample: -0.8% increase in market shares among 2.5-star plans versus 2-star plan
 - RD on 0.175 bandwidth: 0.9% increase when imposing constant slopes, 0.8% increase when allowing for differential slopes
-- RD on 0.125 bandwidth: 1.2% increase (again allowing for differential slopes)
+- RD on 0.125 bandwidth: 0.6% increase (again allowing for differential slopes)
 
 
 ---
@@ -229,7 +229,7 @@ est4 &lt;- as.numeric(star25.4$coef[3])
 
 ```r
 library(rdrobust)
-rdplot(y=ma.rd1$mkt_share, x=ma.rd1$score, binselect="es", ci=95,
+rdplot(y=ma.rd1$mkt_share, x=ma.rd1$score, binselect="es",
        title="RD Plot: Market Share", x.label="Summary Score",
        y.label="Market Share", masspoints="off")
 ```
@@ -248,12 +248,9 @@ rdplot(y=ma.rd1$mkt_share, x=ma.rd1$score, binselect="es", ci=95,
 # Estimates from RD package
 
 ```r
-est1 &lt;- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score,
-                 h=0.124, p=1, kernel="uniform")
-```
-
-```
-## [1] "Mass points detected in the running variable."
+est1 &lt;- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score, c=0,
+                 h=0.125, p=1, kernel="uniform", vce="hc0",
+                 masspoints="off")
 ```
 
 
@@ -266,7 +263,7 @@ est1 &lt;- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score,
 ## Number of Obs.                 9006
 ## BW type                      Manual
 ## Kernel                      Uniform
-## VCE method                       NN
+## VCE method                      HC0
 ## 
 ## Number of Obs.                 3024         5982
 ## Eff. Number of Obs.            2702          260
@@ -275,17 +272,190 @@ est1 &lt;- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score,
 ## BW est. (h)                   0.125        0.125
 ## BW bias (b)                   0.125        0.125
 ## rho (h/b)                     1.000        1.000
-## Unique Obs.                      20           46
 ## 
 ## =============================================================================
 ##         Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       
 ## =============================================================================
-##   Conventional     0.006     0.002     2.501     0.012     [0.001 , 0.010]     
-##         Robust         -         -     5.929     0.000     [0.025 , 0.049]     
+##   Conventional     0.006     0.003     2.034     0.042     [0.000 , 0.012]     
+##         Robust         -         -     5.870     0.000     [0.024 , 0.049]     
+## =============================================================================
+```
+
+---
+# Optimal bandwidth
+
+
+```r
+estopt &lt;- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score, c=0,
+                 p=1, kernel="uniform", vce="hc0",
+                 masspoints="off")
+```
+
+---
+# Estimates with optimal bandwidth
+
+```
+## Call: rdrobust
+## 
+## Number of Obs.                 9006
+## BW type                       mserd
+## Kernel                      Uniform
+## VCE method                      HC0
+## 
+## Number of Obs.                 3024         5982
+## Eff. Number of Obs.             234           91
+## Order est. (p)                    1            1
+## Order bias  (q)                   2            2
+## BW est. (h)                   0.054        0.054
+## BW bias (b)                   0.123        0.123
+## rho (h/b)                     0.442        0.442
+## 
+## =============================================================================
+##         Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       
+## =============================================================================
+##   Conventional     0.034     0.008     4.556     0.000     [0.020 , 0.049]     
+##         Robust         -         -     4.335     0.000     [0.018 , 0.049]     
 ## =============================================================================
 ```
 
 
+---
+# Estimates for other rating thresholds
+
+
+
+
+
+```r
+summary(est225)
+```
+
+```
+## Call: rdrobust
+## 
+## Number of Obs.                 9006
+## BW type                      Manual
+## Kernel                      Uniform
+## VCE method                      HC0
+## 
+## Number of Obs.                 3024         5982
+## Eff. Number of Obs.            2702          260
+## Order est. (p)                    1            1
+## Order bias  (q)                   2            2
+## BW est. (h)                   0.125        0.125
+## BW bias (b)                   0.125        0.125
+## rho (h/b)                     1.000        1.000
+## 
+## =============================================================================
+##         Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       
+## =============================================================================
+##   Conventional     0.006     0.003     2.034     0.042     [0.000 , 0.012]     
+##         Robust         -         -     5.870     0.000     [0.024 , 0.049]     
+## =============================================================================
+```
+
+---
+# Estimates for other rating thresholds
+
+
+```r
+summary(est275)
+```
+
+```
+## Call: rdrobust
+## 
+## Number of Obs.                 9396
+## BW type                      Manual
+## Kernel                      Uniform
+## VCE method                      HC0
+## 
+## Number of Obs.                 5982         3414
+## Eff. Number of Obs.             243         1502
+## Order est. (p)                    1            1
+## Order bias  (q)                   2            2
+## BW est. (h)                   0.125        0.125
+## BW bias (b)                   0.125        0.125
+## rho (h/b)                     1.000        1.000
+## 
+## =============================================================================
+##         Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       
+## =============================================================================
+##   Conventional     0.021     0.004     4.700     0.000     [0.012 , 0.029]     
+##         Robust         -         -     2.218     0.027     [0.003 , 0.050]     
+## =============================================================================
+```
+
+---
+# Estimates for other rating thresholds
+
+
+```r
+summary(est325)
+```
+
+```
+## Call: rdrobust
+## 
+## Number of Obs.                 5525
+## BW type                      Manual
+## Kernel                      Uniform
+## VCE method                      HC0
+## 
+## Number of Obs.                 3826         1699
+## Eff. Number of Obs.             888          629
+## Order est. (p)                    1            1
+## Order bias  (q)                   2            2
+## BW est. (h)                   0.125        0.125
+## BW bias (b)                   0.125        0.125
+## rho (h/b)                     1.000        1.000
+## 
+## =============================================================================
+##         Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       
+## =============================================================================
+##   Conventional     0.016     0.004     4.568     0.000     [0.009 , 0.024]     
+##         Robust         -         -     7.504     0.000     [0.025 , 0.043]     
+## =============================================================================
+```
+
+---
+# Estimates for other rating thresholds
+
+
+```r
+summary(est375)
+```
+
+```
+## Call: rdrobust
+## 
+## Number of Obs.                 3515
+## BW type                      Manual
+## Kernel                      Uniform
+## VCE method                      HC0
+## 
+## Number of Obs.                 2625          890
+## Eff. Number of Obs.             628          619
+## Order est. (p)                    1            1
+## Order bias  (q)                   2            2
+## BW est. (h)                   0.125        0.125
+## BW bias (b)                   0.125        0.125
+## rho (h/b)                     1.000        1.000
+## 
+## =============================================================================
+##         Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       
+## =============================================================================
+##   Conventional    -0.004     0.003    -1.705     0.088    [-0.010 , 0.001]     
+##         Robust         -         -    -2.726     0.006    [-0.022 , -0.004]    
+## =============================================================================
+```
+
+
+---
+# Manipulation of the running variable
+
+---
+# Covariate balance
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

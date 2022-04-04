@@ -61,7 +61,7 @@ knitr::opts_hooks$set(fig.callout = function(options) {
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
                scales, plotly, gganimate, cobalt, ivpack, stargazer, haven, ggthemes,
-               gifski, magick, rdrobust, here)
+               gifski, magick, rdrobust, here, modelsummary)
 set.seed(1234)
 ```
 
@@ -176,9 +176,9 @@ CMS does more than just an average...
 ```{r}
 ma.rd1 <- ma.rd1 %>%
   mutate(score = raw_rating - 2.25,
-         treat = (Star_Rating==2.5),
-         window1 = (score>-.175 & score<.175),
-         window2 = (score>-.125 & score<.125),
+         treat = (score>=0),
+         window1 = (score>=-.175 & score<=.175),
+         window2 = (score>=-.125 & score<=.125),
          mkt_share = avg_enrollment/avg_eligibles,
          ln_share = log(mkt_share),
          score_treat=score*treat)
@@ -220,7 +220,7 @@ stargazer(star25.1, star25.2, star25.3, star25.4,
 # Built-in RD packages
 ```{r rd-ma-plot1, eval=FALSE, warning=FALSE}
 library(rdrobust)
-rdplot(y=ma.rd1$mkt_share, x=ma.rd1$score, binselect="es", ci=95,
+rdplot(y=ma.rd1$mkt_share, x=ma.rd1$score, binselect="es",
        title="RD Plot: Market Share", x.label="Summary Score",
        y.label="Market Share", masspoints="off")
 ```
@@ -240,8 +240,9 @@ rdplot(y=ma.rd1$mkt_share, x=ma.rd1$score, binselect="es", ci=95,
 ---
 # Estimates from RD package
 ```{r}
-est1 <- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score,
-                 h=0.124, p=1, kernel="uniform")
+est1 <- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score, c=0,
+                 h=0.125, p=1, kernel="uniform", vce="hc0",
+                 masspoints="off")
 ```
 
 
@@ -251,4 +252,112 @@ est1 <- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score,
 summary(est1)
 ```
 
+---
+# Optimal bandwidth
 
+```{r}
+estopt <- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score, c=0,
+                 p=1, kernel="uniform", vce="hc0",
+                 masspoints="off")
+```
+
+---
+# Estimates with optimal bandwidth
+```{r echo=FALSE}
+summary(estopt)
+```
+
+
+---
+# Estimates for other rating thresholds
+```{r include=FALSE}
+ma.rd225 <- ma.data.clean %>%
+  filter(Star_Rating==2 | Star_Rating==2.5) %>%
+  mutate(score = raw_rating - 2.25,
+         treat = (score>=0),
+         window1 = (score>=-.175 & score<=.175),
+         window2 = (score>=-.125 & score<=.125),
+         mkt_share = avg_enrollment/avg_eligibles,
+         ln_share = log(mkt_share),
+         score_treat=score*treat)
+
+ma.rd275 <- ma.data.clean %>%
+  filter(Star_Rating==2.5 | Star_Rating==3) %>%
+  mutate(score = raw_rating - 2.75,
+         treat = (score>=0),
+         window1 = (score>=-.175 & score<=.175),
+         window2 = (score>=-.125 & score<=.125),
+         mkt_share = avg_enrollment/avg_eligibles,
+         ln_share = log(mkt_share),
+         score_treat=score*treat)
+
+ma.rd325 <- ma.data.clean %>%
+  filter(Star_Rating==3 | Star_Rating==3.5) %>%
+  mutate(score = raw_rating - 3.25,
+         treat = (score>=0),
+         window1 = (score>=-.175 & score<=.175),
+         window2 = (score>=-.125 & score<=.125),
+         mkt_share = avg_enrollment/avg_eligibles,
+         ln_share = log(mkt_share),
+         score_treat=score*treat)
+
+ma.rd375 <- ma.data.clean %>%
+  filter(Star_Rating==3.5 | Star_Rating==4) %>%
+  mutate(score = raw_rating - 3.75,
+         treat = (score>=0),
+         window1 = (score>=-.175 & score<=.175),
+         window2 = (score>=-.125 & score<=.125),
+         mkt_share = avg_enrollment/avg_eligibles,
+         ln_share = log(mkt_share),
+         score_treat=score*treat)
+
+est225 <- rdrobust(y=ma.rd225$mkt_share, x=ma.rd225$score, c=0,
+                 h=0.125, p=1, kernel="uniform", vce="hc0",
+                 masspoints="off")
+
+est275 <- rdrobust(y=ma.rd275$mkt_share, x=ma.rd275$score, c=0,
+                 h=0.125, p=1, kernel="uniform", vce="hc0",
+                 masspoints="off")
+
+est325 <- rdrobust(y=ma.rd325$mkt_share, x=ma.rd325$score, c=0,
+                 h=0.125, p=1, kernel="uniform", vce="hc0",
+                 masspoints="off")
+
+est375 <- rdrobust(y=ma.rd375$mkt_share, x=ma.rd375$score, c=0,
+                 h=0.125, p=1, kernel="uniform", vce="hc0",
+                 masspoints="off")
+```
+
+
+
+```{r}
+summary(est225)
+```
+
+---
+# Estimates for other rating thresholds
+
+```{r}
+summary(est275)
+```
+
+---
+# Estimates for other rating thresholds
+
+```{r}
+summary(est325)
+```
+
+---
+# Estimates for other rating thresholds
+
+```{r}
+summary(est375)
+```
+
+
+---
+# Manipulation of the running variable
+
+---
+# Covariate balance
