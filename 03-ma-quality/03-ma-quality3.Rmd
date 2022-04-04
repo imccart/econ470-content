@@ -1,0 +1,254 @@
+---
+title: "Module 3: Medicare Advantage Quality and Regression Discontinuity"
+subtitle: "Part 3: RD in Practice"
+author: Ian McCarthy | Emory University
+date: Econ 470 & HLTH 470 #"`r format(Sys.time(), '%d %B %Y')`"
+header-includes: 
+  - \usepackage{graphicx}
+  - \usepackage{amsmath}
+output:
+#  html_document: default
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, custom.css] 
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      beforeInit: "macros.js"
+knit: pagedown::chrome_print
+---
+
+<!-- Adjust some CSS code for font size and maintain R code font size -->
+<style type="text/css">
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+</style>
+
+
+<!-- Set R options for how code chunks are displayed and load packages -->
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(knitr)
+knitr::opts_chunk$set(
+  fig.align="center",  
+  fig.height=3, #fig.width=6,
+  # out.width="748px", #out.length="520.75px",
+  dpi=300, #fig.path='Figs/',
+  cache=T,# echo=F, warning=F, message=F
+  warning = FALSE, 
+  message = FALSE, 
+  cache.lazy=FALSE,
+  error=TRUE
+  )
+
+knitr::opts_hooks$set(fig.callout = function(options) {
+  if(options$fig.callout) {
+    options$echo = FALSE
+  }
+  options
+})
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
+               scales, plotly, gganimate, cobalt, ivpack, stargazer, haven, ggthemes,
+               gifski, magick, rdrobust, here)
+set.seed(1234)
+```
+
+```{r xaringan-scribble, echo=FALSE}
+xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
+```
+
+
+# MA Data
+```{r eval=T, include=T}
+ma.data <- read_rds(here("data/final_ma_data.rds"))
+```
+
+```{r}
+ma.data.clean <- ma.data %>%
+  filter(!is.na(avg_enrollment) & year==2009 & !is.na(partc_score)) #<<
+```
+
+---
+# Calculate raw average rating
+```{r}
+ma.data.clean <- ma.data.clean %>%
+  mutate(raw_rating=rowMeans(
+    cbind(breastcancer_screen,rectalcancer_screen,cv_cholscreen,diabetes_cholscreen,
+          glaucoma_test,monitoring,flu_vaccine,pn_vaccine,physical_health,
+          mental_health,osteo_test,physical_monitor,primaryaccess,
+          hospital_followup,depression_followup,nodelays,carequickly,
+          overallrating_care,overallrating_plan,calltime,
+          doctor_communicate,customer_service,osteo_manage,
+          diabetes_eye,diabetes_kidney,diabetes_bloodsugar,
+          diabetes_chol,antidepressant,bloodpressure,ra_manage,
+          copd_test,betablocker,bladder,falling,appeals_timely,
+          appeals_review),
+    na.rm=T)) %>%
+  select(contractid, planid, fips, avg_enrollment, first_enrollment,
+         last_enrollment, state, county, raw_rating, partc_score,
+         avg_eligibles, avg_enrolled, premium_partc, risk_ab, Star_Rating,
+         bid, avg_ffscost, ma_rate)
+```
+
+
+---
+# Distribution of star ratings
+
+```{r rating-count, eval=FALSE, warning=FALSE}
+ma.data.clean %>% 
+  ggplot(aes(x=as.factor(Star_Rating))) + 
+  geom_bar() +
+  labs(
+    x="Star Rating",
+    y="Count of Plans",
+    title="Frequency Distribution of Star Ratings"
+  ) + theme_bw()
+```
+.plot-callout[
+```{r rating-count-callout, ref.label="rating-count", fig.callout=TRUE, warning=FALSE}
+```
+]
+
+
+---
+# Distribution of star ratings
+
+```{r rating-count-output, ref.label="rating-count", fig.callout=TRUE, warning=FALSE}
+```
+
+---
+# Enrollments and star ratings
+```{r, echo=FALSE}
+summary(lm(avg_enrollment~factor(Star_Rating), data=ma.data.clean))
+```
+
+
+---
+# Problems
+- Certainly not the effect of a higher rating...
+- Lots of things unobserved, like
+  - actual quality
+  - perceived quality
+  - prices
+  
+---
+# Effect of 3-star rating
+
+.left-code[
+```{r}
+ma.rd1 <- ma.data.clean %>%
+  filter(Star_Rating==2 | Star_Rating==2.5)
+```
+]
+
+.right-plot[
+```{r}
+ma.rd1 %>% ggplot(aes(x=raw_rating)) + 
+  geom_bar(width=.025) + theme_bw() +
+  labs(
+    x="Running Variable",
+    y="Number of Plans",
+    title="Distribution of Raw Scores"
+  ) 
+```
+]
+
+---
+# Note about scores
+CMS does more than just an average...
+- variance across individual metrics
+- high variance is punished, low variance rewarded
+
+---
+# RD estimates
+```{r}
+ma.rd1 <- ma.rd1 %>%
+  mutate(score = raw_rating - 2.25,
+         treat = (Star_Rating==2.5),
+         window1 = (score>-.175 & score<.175),
+         window2 = (score>-.125 & score<.125),
+         mkt_share = avg_enrollment/avg_eligibles,
+         ln_share = log(mkt_share),
+         score_treat=score*treat)
+star25.1 <- lm(mkt_share ~ score + treat, data=ma.rd1)
+star25.2 <- lm(mkt_share ~ score + treat, data= (ma.rd1 %>% filter(window1==TRUE)))
+star25.3 <- lm(mkt_share ~ score + treat + score_treat, data= (ma.rd1 %>% filter(window1==TRUE)))
+star25.4 <- lm(mkt_share ~ score + treat + score_treat, data= (ma.rd1 %>% filter(window2==TRUE)))
+est1 <- as.numeric(star25.1$coef[3])
+est2 <- as.numeric(star25.2$coef[3])
+est3 <- as.numeric(star25.3$coef[3])
+est4 <- as.numeric(star25.4$coef[3])
+```
+
+---
+# RD estimates
+```{r echo=FALSE, results="asis"}
+stargazer(star25.1, star25.2, star25.3, star25.4,
+          type="html",
+          keep=c("score","treat"),           
+          keep.stat=c("n"),
+          model.names=FALSE,
+          dep.var.caption="",
+          font.size="scriptsize",
+          no.space=TRUE,
+          add.lines=list(c("Bandwith","0.5","0.175","0.175.","0.125")),
+          covariate.labels = c("Raw Score","Treatment", "Score x Treat"))
+```
+
+
+---
+# Interpretation
+
+- OLS on full sample: `r round(est1,3)*100`% increase in market shares among 2.5-star plans versus 2-star plan
+- RD on 0.175 bandwidth: `r round(est2,3)*100`% increase when imposing constant slopes, `r round(est3,3)*100`% increase when allowing for differential slopes
+- RD on 0.125 bandwidth: `r round(est4,3)*100`% increase (again allowing for differential slopes)
+
+
+---
+# Built-in RD packages
+```{r rd-ma-plot1, eval=FALSE, warning=FALSE}
+library(rdrobust)
+rdplot(y=ma.rd1$mkt_share, x=ma.rd1$score, binselect="es", ci=95,
+       title="RD Plot: Market Share", x.label="Summary Score",
+       y.label="Market Share", masspoints="off")
+```
+
+.plot-callout[
+```{r rd-ma-plot-callout, ref.label="rd-ma-plot1", fig.callout=TRUE, warning=FALSE, message=FALSE}
+```
+]
+
+---
+# RD Plot
+
+```{r rd-ma-plot-output, ref.label="rd-ma-plot1", fig.callout=TRUE, warning=FALSE, message=FALSE}
+```
+
+
+---
+# Estimates from RD package
+```{r}
+est1 <- rdrobust(y=ma.rd1$mkt_share, x=ma.rd1$score,
+                 h=0.124, p=1, kernel="uniform")
+```
+
+
+---
+# Estimates from RD package
+```{r echo=FALSE}
+summary(est1)
+```
+
+
