@@ -454,8 +454,126 @@ summary(est375)
 ---
 # Manipulation of the running variable
 
+.center[
+![:scale 75%](https://media.giphy.com/media/5669bWEI7TS3S/giphy.gif)
+]
+
+
+---
+# Manipulation of the running variable
+
+
+```r
+dens225 &lt;- rddensity(ma.rd225$score, c=0)
+rdplotdensity(dens225, ma.rd225$score)
+```
+
+&lt;img src="03-ma-quality3_files/figure-html/unnamed-chunk-18-1.png" style="display: block; margin: auto;" /&gt;
+
+```
+## $Estl
+## Call: lpdensity
+## 
+## Sample size                                      3032
+## Polynomial order for point estimation    (p=)    2
+## Order of derivative estimated            (v=)    1
+## Polynomial order for confidence interval (q=)    3
+## Kernel function                                  triangular
+## Scaling factor                                   0.33659078289839
+## Bandwidth method                                 user provided
+## 
+## Use summary(...) to show estimates.
+## 
+## $Estr
+## Call: lpdensity
+## 
+## Sample size                                      5982
+## Polynomial order for point estimation    (p=)    2
+## Order of derivative estimated            (v=)    1
+## Polynomial order for confidence interval (q=)    3
+## Kernel function                                  triangular
+## Scaling factor                                   0.664186563020544
+## Bandwidth method                                 user provided
+## 
+## Use summary(...) to show estimates.
+## 
+## $Estplot
+```
+
+&lt;img src="03-ma-quality3_files/figure-html/unnamed-chunk-18-2.png" style="display: block; margin: auto;" /&gt;
+
+---
+# Manipulation of the running variable
+
+
+```r
+summary(dens275)
+```
+
+```
+## 
+## Manipulation testing using local polynomial density estimation.
+## 
+## Number of obs =       9396
+## Model =               unrestricted
+## Kernel =              triangular
+## BW method =           estimated
+## VCE method =          jackknife
+## 
+## c = 0                 Left of c           Right of c          
+## Number of obs         5982                3414                
+## Eff. Number of obs    4113                2075                
+## Order est. (p)        2                   2                   
+## Order bias (q)        3                   3                   
+## BW est. (h)           0.228               0.228               
+## 
+## Method                T                   P &gt; |T|             
+## Robust                33.7033             0                   
+## 
+## 
+## P-values of binomial tests (H0: p=0.5).
+## 
+## Window Length / 2          &lt;c     &gt;=c    P&gt;|T|
+## 0.017                       0      27    0.0000
+## 0.033                       2     125    0.0000
+## 0.050                      57     125    0.0000
+## 0.067                      94     248    0.0000
+## 0.083                      94     302    0.0000
+## 0.100                     167     515    0.0000
+## 0.117                     233    1499    0.0000
+## 0.133                     243    1502    0.0000
+## 0.150                    3471    1798    0.0000
+## 0.167                    3471    1826    0.0000
+```
+
+
 ---
 # Covariate balance
+
+
+```r
+match.dat &lt;- matchit(treat~premium_partc + ma_rate, 
+                     data=ma.rd225 %&gt;% 
+                       filter(window2==TRUE, 
+                              !is.na(treat), 
+                              !is.na(premium_partc), 
+                              !is.na(ma_rate)),
+                     method=NULL, distance="mahalanobis")
+```
+
+
+---
+# Covariate balance
+
+&lt;img src="03-ma-quality3_files/figure-html/unnamed-chunk-21-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+# RD with discrete variables
+
+- Allow for fewer mass points
+- Assume random assignment between mass points
+- Inference using Fisher's exact test
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

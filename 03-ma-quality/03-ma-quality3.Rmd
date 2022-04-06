@@ -61,7 +61,8 @@ knitr::opts_hooks$set(fig.callout = function(options) {
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
                scales, plotly, gganimate, cobalt, ivpack, stargazer, haven, ggthemes,
-               gifski, magick, rdrobust, here, modelsummary)
+               gifski, magick, rdrobust, here, modelsummary, rddensity,
+               MatchIt, cobalt)
 set.seed(1234)
 ```
 
@@ -359,5 +360,52 @@ summary(est375)
 ---
 # Manipulation of the running variable
 
+.center[
+![:scale 75%](https://media.giphy.com/media/5669bWEI7TS3S/giphy.gif)
+]
+
+
+---
+# Manipulation of the running variable
+
+```{r}
+dens225 <- rddensity(ma.rd225$score, c=0)
+rdplotdensity(dens225, ma.rd225$score)
+```
+
+---
+# Manipulation of the running variable
+
+```{r}
+summary(dens275)
+```
+
+
 ---
 # Covariate balance
+
+```{r echo=T, results='hide'}
+match.dat <- matchit(treat~premium_partc + ma_rate, 
+                     data=ma.rd225 %>% 
+                       filter(window2==TRUE, 
+                              !is.na(treat), 
+                              !is.na(premium_partc), 
+                              !is.na(ma_rate)),
+                     method=NULL, distance="mahalanobis")
+```
+
+
+---
+# Covariate balance
+
+```{r echo=FALSE}
+love.plot(match.dat, abs=TRUE)
+```
+
+
+---
+# RD with discrete variables
+
+- Allow for fewer mass points
+- Assume random assignment between mass points
+- Inference using Fisher's exact test
