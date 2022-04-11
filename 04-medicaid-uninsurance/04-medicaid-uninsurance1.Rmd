@@ -255,7 +255,7 @@ We'll use two main data sources here:
 
 ---
 # Data sources
-Code and links available at the [Insurance Access GitHub repository](https://github.com/imccart-test/Insurance-Access)
+Code and links available at the [Insurance Access GitHub repository](https://github.com/imccart-test/insurance-access)
 
 ---
 # Medicaid Expansion
@@ -267,6 +267,14 @@ Code and links available at the [Insurance Access GitHub repository](https://git
 - Data from the American Community Survey
 - CPS data also available but questions changed in 2014
 - Easiest way to access ACS data is through a Census API and the `acs` package...details on the *GitHub* repo
+
+---
+# What is an API?
+
+- Stands for application programming interface
+- An official way for one computer to request information from another
+- Often requires a code for external program/server to validate the request
+
 
 
 ---
