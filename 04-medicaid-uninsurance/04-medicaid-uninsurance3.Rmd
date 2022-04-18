@@ -1,0 +1,564 @@
+---
+title: "Module 4: Difference-in-Differences and Effects of Medicaid Expansion"
+subtitle: "Part 3: Difference-in-Differences in Practice"
+author: Ian McCarthy | Emory University
+date: Econ 470 & HLTH 470 #"`r format(Sys.time(), '%d %B %Y')`"
+header-includes: 
+  - \usepackage{graphicx}
+  - \usepackage{amsmath}
+output:
+#  html_document: default
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, custom.css, cols.css] 
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      beforeInit: [macros.js, cols_macro.js]
+knit: pagedown::chrome_print
+---
+
+<!-- Adjust some CSS code for font size and maintain R code font size -->
+<style type="text/css">
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+</style>
+
+
+<!-- Set R options for how code chunks are displayed and load packages -->
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(knitr)
+knitr::opts_chunk$set(
+  fig.align="center",  
+  fig.height=3, #fig.width=6,
+  # out.width="748px", #out.length="520.75px",
+  dpi=300, #fig.path='Figs/',
+  cache=T,# echo=F, warning=F, message=F
+  warning = FALSE, 
+  message = FALSE, 
+  cache.lazy = FALSE,
+  error=TRUE
+  )
+
+knitr::opts_hooks$set(fig.callout = function(options) {
+  if(options$fig.callout) {
+    options$echo = FALSE
+  }
+  options
+})
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
+               scales, plotly, gganimate, cobalt, ivpack, stargazer, haven, ggthemes,
+               gifski, magick, lfe, dotwhisker, here, fixest, modelsummary)
+set.seed(1234)
+```
+
+```{r xaringan-scribble, echo=FALSE}
+xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
+```
+
+# Table of contents
+
+1. [What are Panel Data](#panel)
+2. [Estimation with Panel Data](#estimation)
+3. [DD in Practice](#dd)
+4. [Interpreting](#what)
+
+
+```{r include=FALSE}
+ins.dat <- read_rds(here("data/acs_medicaid.rds"))
+
+ins.dat <- ins.dat %>%
+  mutate(perc_private = (ins_employer + ins_direct)/adult_pop,
+         perc_public = (ins_medicare + ins_medicaid)/adult_pop,
+         perc_ins = (adult_pop - uninsured)/adult_pop,
+         perc_unins = uninsured/adult_pop,
+         perc_employer = ins_employer/adult_pop,
+         perc_medicaid = ins_medicaid/adult_pop,
+         perc_medicare = ins_medicare/adult_pop,
+         perc_direct = ins_direct/adult_pop)
+```
+
+---
+class: inverse, center, middle
+name: panel
+
+# What are Panel Data?
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# Nature of the Data
+
+- Repeated observations of the same units over time
+
+
+--
+**Notation**
+- Unit $i=1,...,N$ over several periods $t=1,...,T$, which we denote $y_{it}$
+- Treatment status $D_{it}$
+- Regression model, <br>
+$y_{it} = \delta D_{it} + \alpha_{i} + \epsilon_{it}$ for $t=1,...,T$ and $i=1,...,N$
+
+---
+# Benefits of Panel Data
+
+- *May* overcome certain forms of omitted variable bias
+- Allows for unobserved but time-invariant factor, $\alpha_{i}$, that affects both treatment and outcomes
+
+
+--
+**Still assumes**
+- No time-varying confounders 
+- Past outcomes do not directly affect current outcomes
+- Past outcomes do not affect treatment (reverse causality)
+
+---
+# Some textbook settings
+
+- Unobserved "ability" when studying schooling and wages
+- Unobserved "quality" when studying physicians or hospitals
+
+---
+class: inverse, center, middle
+name: estimation
+
+# Estimating Regressions with Panel Data
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+---
+# Regression model
+
+$y_{it} = \alpha + \delta D_{it}  + \epsilon_{it}$ for $t=1,...,T$ and $i=1,...,N$
+
+---
+# Fixed Effects
+
+$y_{it} = \alpha_{i} + \delta D_{it} + \epsilon_{it}$ for $t=1,...,T$ and $i=1,...,N$
+
+
+--
+- Allows correlation between $\alpha_{i}$ and $D_{it}$
+- Physically estimate $\alpha_{i}$ in some cases via set of dummy variables
+- More generally, "remove" $\alpha_{i}$ via:
+  - "within" estimator
+  - first-difference estimator
+  
+---
+# Within Estimator
+$y_{it} = \alpha_{i} + \delta D_{it} +  \epsilon_{it}$ for $t=1,...,T$ and $i=1,...,N$
+
+
+--
+- Most common approach (default in most statistical software)
+- Equivalent to demeaned model,<br>
+$y_{it} - \bar{y}_{i} = \delta (D_{it} - \bar{D}_{i}) + (\alpha_{i} - \bar{\alpha}_{i}) + (\epsilon_{it} - \bar{\epsilon}_{i})$
+- $\alpha_{i} - \bar{\alpha}_{i} = 0$ since $\alpha_{i}$ is time-invariant
+- Requires *strict exogeneity* assumption (error is uncorrelated with $D_{it}$ for all time periods)
+
+---
+# First-difference
+$y_{it} = \delta D_{it} + \alpha_{i} + \epsilon_{it}$ for $t=1,...,T$ and $i=1,...,N$
+
+
+--
+- Instead of subtracting the mean, subtract the prior period values<br>
+$y_{it} - y_{i,t-1} = \delta(D_{it} - D_{i,t-1}) + (\alpha_{i} - \alpha_{i}) + (\epsilon_{it} - \epsilon_{i,t-1})$
+- Requires exogeneity of $\epsilon_{it}$ and $D_{it}$ only for time $t$ and $t-1$ (weaker assumption than within estimator)
+- Sometimes useful to estimate both FE and FD just as a check
+
+
+---
+# Keep in mind...
+
+- Discussion only applies to linear case or very specific nonlinear models
+- Fixed effects can't solve reverse causality
+- Fixed effects doesn't address unobserved, time-varying confounders
+- Can't estimate effects on time-invariant variables
+- May "absorb" a lot of the variation for variables that don't change much over time
+
+---
+# Within Estimator (Default)
+
+```{r}
+library(readstata13)
+library(fixest)
+wagepan <- read.dta13("http://fmwww.bc.edu/ec-p/data/wooldridge/wagepan.dta")
+feols(lwage~exper + expersq | nr, data=wagepan)
+```
+
+
+---
+# Within Estimator (Manually Demean)
+
+```{r}
+library(readstata13)
+wagepan <- read.dta13("http://fmwww.bc.edu/ec-p/data/wooldridge/wagepan.dta")
+wagepan <- wagepan %>%
+  group_by(nr) %>%
+  mutate(demean_lwage=lwage - mean(lwage),
+         demean_exper=exper - mean(exper),
+         demean_expersq=expersq - mean(expersq))
+summary(lm(demean_lwage~demean_exper + demean_expersq, data=wagepan))
+```
+
+
+---
+# First differencing
+
+```{r}
+library(readstata13)
+wagepan <- read.dta13("http://fmwww.bc.edu/ec-p/data/wooldridge/wagepan.dta")
+wagepan <- wagepan %>%
+  group_by(nr) %>%
+  arrange(year) %>%
+  mutate(fd_lwage=lwage - lag(lwage),
+         fd_exper=exper - lag(exper),
+         fd_expersq=expersq - lag(expersq)) %>%
+  na.omit()
+summary(lm(fd_lwage~0 + fd_exper + fd_expersq, data=wagepan))
+```
+
+
+
+---
+class: inverse, center, middle
+name: dd
+
+# DD with Medicaid Expansion
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# Key issue
+What is the causal effect of Medicaid expansion?
+- Clearly affects insurance markets
+
+
+--
+
+- but Medicaid enrollment partially crowds out private insurance
+
+
+---
+# Research design
+- Use pre/post and expansion/non-expansion states to identify effect of Medicaid expansion
+- In a regression structure: 
+$$y_{it} = \alpha + \beta \times 1(Post)_{t} + \gamma D_{i} + \delta \times 1(Post)_{t} \times D_{i} + \varepsilon_{it}$$
+
+---
+# Regression results
+```{r}
+ins.dat.2014 <- ins.dat %>% mutate(post = (year>=2014), treat=post*expand_ever) %>% filter(is.na(expand_year) | expand_year==2014)
+dd.ins.reg <- lm(perc_unins ~ post + expand_ever + post*expand_ever, data=ins.dat.2014)
+summary(dd.ins.reg)
+```
+
+---
+# Checking pre-trends
+First just plot separately by group:
+```{r unins-group, eval=FALSE}
+ins.plot.dat <- ins.dat %>% filter(!is.na(expand_ever)) %>%
+  group_by(expand_ever, year) %>% summarize(mean=mean(perc_unins))
+  
+ggplot(data=ins.plot.dat, aes(x=year,y=mean,group=expand_ever,linetype=expand_ever)) + 
+  geom_line() + geom_point() + theme_bw() +
+  geom_vline(xintercept=2013.5, color="red") +
+  geom_text(data = ins.plot.dat %>% filter(year == 2016), 
+            aes(label = c("Non-expansion","Expansion"),
+                x = year + 1,
+                y = mean)) +
+  guides(linetype=FALSE) +
+  labs(
+    x="Year",
+    y="Fraction Uninsured",
+    title="Share of Uninsured over Time"
+  )
+```
+
+.plot-callout[
+```{r unins-group-small, ref.label="unins-group", fig.callout=TRUE, warning=FALSE}
+```
+]
+
+---
+# Checking pre-trends
+
+```{r unins-group-big, ref.label="unins-group", fig.callout=TRUE, warning=FALSE}
+```
+
+---
+# Some things to consider
+
+1. Unobserved differences across units or time (TWFE)
+2. Heterogeneous treatment effects (event study)
+
+---
+# What is TWFE?
+
+- Just a shorthand for a common regression specification
+- Fixed effects for each unit and each time period, $\lambda_{i}$ and $\lambda_{t}$
+- More general than 2x2 DD but same result
+
+---
+# What is TWFE?
+Want to estimate $\delta$:
+
+$$y_{it} = \alpha + \delta D_{it} + \gamma_{i} + \gamma_{t} + \varepsilon,$$<br>
+
+where $\gamma_{i}$ and $\gamma_{t}$ denote a set of unit $i$ and time period $t$ dummy variables (or fixed effects).
+
+---
+# Fixed Effects?
+
+Recall our original regression specification:<br>
+$$y_{it} = \alpha + \beta \times 1(Post)_{t} + \gamma D_{i} + \delta \times 1(Post)_{t} \times D_{i} + \varepsilon_{it}$$
+
+<br>
+This is a special case of a general fixed effects estimator:<br>
+$y_{it} = \alpha + \delta \times 1(Post)_{t} \times D_{i} + \gamma_{i} + \gamma_{t} + \varepsilon$,<br>
+where $\gamma_{i}$ and $\gamma_{t}$ denote a set of coefficients on state (i) and year (t) dummy variables (or fixed effects).
+
+
+---
+# Fixed Effects?
+In R, we can estimate the fixed effects specification using the `felm` command (among others), which is part of the `lfe` package. Intuitively, the treatment dummy is now captured by $\gamma_{i}$ and the pre/post dummy is captured by $\gamma_{t}$.
+
+
+--
+
+- Small datasets, estimate $\gamma_{i}$ and $\gamma_{t}$ directly
+- Large datasets, "fixed effects" estimators will "remove" those variables
+
+---
+# Equivalence
+DD is just a special case of the fixed effects approach.
+
+
+.pull-left[
+```{r}
+summary(lm(perc_unins ~ post + expand_ever + post*expand_ever, data=ins.dat.2014))
+```
+]
+
+.pull-right[
+```{r}
+summary(felm(perc_unins ~ treat | factor(State) + factor(year), data=ins.dat.2014))
+```
+]
+
+
+---
+# Event study
+This is poorly named:
+- In finance, even study is just an *interrupted time series*
+- In economics, we usually have a treatment/control group *and* a break in time
+
+---
+# Event study
+
+- Allows for different effect estimates at each time period (maybe effects phase in over time or dissipate)
+- Visually very appealing
+- Offers easy visual test for parallel trends assumption
+
+---
+# Event study
+
+Estimate something akin to...
+$$y_{it} = \gamma_{i} + \gamma_{t} + \sum_{\tau = -q}^{-1}\delta_{\tau} D_{i \tau} + \sum_{\tau=0}^{m} \delta_{\tau}D_{i \tau} + x_{it} + \epsilon_{it},$$
+
+where $q$ captures the number of periods before the treatment occurs and $m$ captures periods after treatment occurs.
+
+
+---
+# Event study
+First create all of the treatment/year interactions:
+```{r}
+event.dat <- ins.dat.2014 %>%
+  mutate(expand_2012 = expand_ever*(year==2012),
+         expand_2013 = expand_ever*(year==2013),
+         expand_2014 = expand_ever*(year==2014),
+         expand_2015 = expand_ever*(year==2015),
+         expand_2016 = expand_ever*(year==2016),
+         expand_2017 = expand_ever*(year==2017),
+         expand_2018 = expand_ever*(year==2018))
+```
+
+---
+# Event study
+Second, run regression with full set of interactions and group/year dummies:
+```{r}
+event.ins.reg <- lm(perc_unins ~ expand_2012 + expand_2014 + 
+                      expand_2015 + expand_2016 + expand_2017 + 
+                      expand_2018 + factor(year) + factor(State), data=event.dat)
+point.est <- as_tibble(c(event.ins.reg$coefficients[c("expand_2012","expand_2014","expand_2015",
+                                            "expand_2016","expand_2017","expand_2018")]),
+                       rownames = "term")
+ci.est <- as_tibble(confint(event.ins.reg)[c("expand_2012","expand_2014","expand_2015",
+                                   "expand_2016","expand_2017","expand_2018"),],
+                    rownames = "term")
+```
+
+---
+# Event study
+Third, organize results into a new dataset:
+```{r}
+point.est <- point.est %>% rename(estimate = value)
+ci.est <- ci.est %>% rename(conf.low = `2.5 %`, conf.high = `97.5 %`)
+new.row <- tibble(
+  term = "expand_2013",
+  estimate = 0,
+  conf.low = 0,
+  conf.high = 0,
+  year = 2013
+)
+
+event.plot.dat <- point.est %>%
+  left_join(ci.est, by=c("term")) %>%
+  mutate(year = c(2012, 2014, 2015, 2016, 2017, 2018)) %>%
+  bind_rows(new.row) %>%
+  arrange(year)
+```
+
+---
+# Event study
+Finally, plot coefficients and confidence intervals
+```{r es-plot, warning=FALSE, include=FALSE}
+dwplot(event.plot.dat, 
+       vline=geom_vline(xintercept=0, linetype=2), 
+       vars_order = c("expand_2018","expand_2017","expand_2016",
+                      "expand_2015","expand_2014","expand_2013",
+                      "expand_2012"),
+       whisker_args = list(color="black", size=1.1),
+       dot_args = list(color="black")) + 
+  coord_flip() + theme_bw() + theme(legend.position = "none") +
+  labs(y = "Year",
+       x = "Estimate and 95% CI",
+       title = "Event Study Estimates for Medicaid and Uninsurance Rate") +
+  scale_y_discrete(labels = c("expand_2012" = "2012", 
+                              "expand_2013" = "2013",
+                              "expand_2014" = "2014",
+                              "expand_2015" = "2015",
+                              "expand_2016" = "2016",
+                              "expand_2017" = "2017",
+                              "expand_2018" = "2018"))
+```
+
+.plot-callout[
+```{r es-plot-small, ref.label="es-plot", fig.callout=TRUE, warning=FALSE}
+```
+]
+
+---
+# Event study
+
+```{r es-plot-big, ref.label="es-plot", fig.callout=TRUE, warning=FALSE}
+```
+
+
+
+---
+# Event study considerations
+
+1. "Event time" vs calendar time
+2. Define baseline period
+3. Choose number of pre-treatment and post-treatment coefficients
+
+
+---
+# Event time vs calendar time
+
+Essentially two "flavors" of event studies
+
+1. Common treatment timing
+2. Differential treatment timing
+
+---
+# Define baseline period
+
+- Must choose an "excluded" time period (as in all cases of group dummy variables)
+- Common choice is $t=-1$ (period just before treatment)
+- Easy to understand with calendar time
+- For event time...manually set time to $t=-1$ for all untreated units
+
+---
+# Number of pre-treatment and post-treatment periods
+
+- On event time, sometimes very few observations for large lead or lag values
+- Medicaid expansion example: Late adopting states have fewer post-treatment periods
+- Norm is to group final lead/lag periods together
+
+---
+# In practice
+
+```{r}
+reg.dat <- ins.dat %>% 
+  filter(!is.na(expand_ever)) %>%
+  mutate(post = (year>=2014), 
+         treat=post*expand_ever,
+         time_to_treat = ifelse(expand_ever==FALSE, 0, year-expand_year),
+         time_to_treat = ifelse(time_to_treat < -3, -3, time_to_treat))
+
+mod.twfe <- feols(perc_unins~i(time_to_treat, expand_ever, ref=-1) | State + year,
+                  cluster=~State,
+                  data=reg.dat)
+```
+
+---
+# In practice
+
+```{r}
+iplot(mod.twfe, 
+      xlab = 'Time to treatment',
+      main = 'Event study')
+```
+
+
+---
+class: inverse, center, middle
+name: what
+
+# What are we estimating?
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+---
+# Problems with TWFE
+
+- Recall goal of estimating ATE or ATT
+- TWFE and 2x2 DD identical with homogeneoues effects and common treatment timing
+- Otherwise...TWFE is biased and inconsistent for ATT
+
+---
+# Inutition
+
+- OLS is a weighted average of all 2x2 DD groups
+- Weights are function of size of subsamples, size of treatment/control units, and timing of treatment
+- Units treated in middle of sample receive larger weights
+- Prior-treated units act as controls for late-treated units
+
+
+--
+Just the length of the panel will change the estimate!
+
+---
+# Does it really matter?
+
+- Definitely! But how much?
+- Large treatment effects for early treated units could reverse the sign of final estimate
+- Let's explore this nice Shiny app : [Bacon-Decomposition Shiny App](https://hhsievertsen.shinyapps.io/kylebutts_did_eventstudy/).
