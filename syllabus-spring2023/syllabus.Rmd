@@ -1,0 +1,279 @@
+---
+output: 
+  pdf_document:
+    keep_tex: true
+    fig_caption: yes
+    latex_engine: pdflatex
+    template: syllabus-template.tex
+geometry: margin=1in
+
+title: "Econ/HLTH 470: Research in Health Economics"
+author: Ian McCarthy
+date: "1/10/2023 - 4/24/2023"
+bibliography: "BibTeX_Library.bib"
+csl: "chicago-syllabus-no-bib.csl"
+
+email: "ian.mccarthy@emory.edu"
+web: "econ470s22.classes.ianmccarthyecon.com"
+officehours: "MW 1:30pm-3:00pm"
+office: "PAIS 573"
+classroom: "Rich 211"
+classhours: "MW 10:00am-11:15am"
+
+fontfamily: mathpazo
+fontsize: 11pt
+header-includes:
+   - \linespread{1.03}
+---
+
+
+```{r setup, include=FALSE, cache=F, message=F, warning=F, results="hide"}
+knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(cache.path = '_cache/')
+knitr::opts_chunk$set(warning=F, message=F)
+library(googledrive)
+library(bibtex)
+library(dplyr)
+library(tibble)
+library(RefManageR)
+drive_download("bibliography/BibTeX_Library.bib", overwrite=TRUE, path='BibTeX_Library.bib')
+```
+
+# Course Description
+
+This is a capstone course that combines health economics and human health content with econometrics data science. The course is therefore heavily applied in nature. We will work through four "canonical" research designs, in each case using real world data. You will also complete an empirical research project using real world data and employ econometric methods to analyze a research question relevant to contemporary health care issues and/or health policy. 
+
+**Prerequisites:** Econ 320 (Econometrics) and at least one of the following health economics and policy classes: HLTH 370, Econ 371, Econ 372.
+
+
+# Learning Outcomes
+
+The content of the course is split into three general areas: 1) data management in the real world; 2) health policy and health care institutions; and 3) empirical methods in program evaluation and causal inference. Each area of the course will be covered by way of an example research question, which you can use to guide your own projects throughout the semester. By the end of this course, you will be able to:
+
+1. Organize project files using Git and GitHub
+2. Clean and manage several datasets using tidy data in RStudio
+3. Summarize and visualize data with RStudio and the ggplot2 package
+4. Implement selected methods for causal inference using real data
+5. Explain research results with a written report and discussion
+
+There are more specific learning outcomes for each module described on the relevant module's page of our class website, accessible [here](https://econ470s22.classes.ianmccarthyecon.com/).
+
+
+# Text, Software, and Class Materials
+
+1. **Where to go:** The best place for information on the class is our class website,  [here](https://econ470s22.classes.ianmccarthyecon.com/). I use the website as an easier way for you to access course materials, including notes/slides, a detailed schedule, and assignments. I'll also use Canvas to distribute any papers or specific readings that aren't available publicly, as well as post information that I don't want public like virtual meeting passwords (if necessary) and grades. 
+
+
+2. **Readings:** There is no required textbook for this class, but there are several books that I recommend for additional information and examples. The first is not free but is still very good: 
+
+  - @angrist2009
+
+The following are also excellent resources, with the added bonus of having freely available versions of these texts online. Here are links to the free online versions:
+
+  - [R for Data Science](https://r4ds.had.co.nz/)
+  - [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
+  - [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
+
+
+3. **Statistics Software:** I'll use `R` for my work and in all my answer keys and examples. I encourage you to use `R` as well, since that will be the language for which I can help you the most with any questions. That said, if you can answer all of the questions correctly with another software, feel free to do so. I am well-versed in `Stata` but less so in `Python`. If you choose to use `Python` (not a bad choice given its popularity), then I can certainly help with general questions and concepts, but I will be less helpful with any syntax issues.
+
+4. **Accessing Data:** For all assignments and in-class activities, the necessary raw data will be available in our class OneDrive folder. For transparency, I will also point you to other GitHub repositories where available. We'll spend some time on Git and GitHub at the beginning of the class, so don't get too worried if this is new to you. 
+
+5. **Logistics:** For day-to-day communication and announcements, I'll use *Canvas*. Please be sure you've set up Canvas alerts so that you see all of these announcements in a timely manner. 
+
+6. **Turning things in:** All assignments should be submitted as links to GitHub repositories in *Canvas*.
+
+# Course Policies
+
+Various policies for this course are described below. Basically, let's all work to be good citizens and take seriously our various roles as a student, teacher, friend, colleague, human, etc.
+
+## Class meetings
+
+All regular class meetings will take place in the **Rich Memorial Building, Room 211** on Mondays and Wednesdays from 10:00am to 11:15am. 
+
+
+## Office hours
+
+My designated office hours will be on Monday and Wednesday from 1:30pm to 3:00pm in PAIS 573. While we call these "office hours" they really should be "student hours". These are set times dedicated to all of you. This means that I will be in my office waiting for you to come by with whatever questions you have. I'm also available outside of those designated times. I just ask that you schedule an appointment in advance. [Make an appointment with me here](https://mccarthy-meetings.youcanbook.me/). Unless we arrange otherwise, my office hours will be exclusively in-person.
+
+For any questions that you don't think need a full meeting, you can also always reach out to me through email. I do my best to respond within 24 hours to all emails.
+
+
+## Academic integrity
+
+The Honor Code is in effect throughout the semester. By taking this course, you affirm that it is a violation of the code to cheat on exams, to plagiarize, to deviate from the teacher’s instructions about collaboration on work that is submitted for grades, to give false information to a faculty member, and to undertake any other form of academic misconduct. You agree that the instructor is entitled to move you to another seat during examinations, without explanation. You also affirm that if you witness others violating the code you have a duty to report them to the honor council. Students who violate the Honor Code may be subject to a written mark on their record, failure of the course, suspension, permanent dismissal, or a combination of these and other sanctions. The Honor Code may be reviewed at: [Emory Honor Code Policies](http://catalog.college.emory.edu/academic/policies-regulations/honor-code.html).
+
+
+## Accessibility services
+
+If you anticipate issues related to the format or requirements of this course, please meet with me. I would like us to discuss ways to ensure your full participation in the course. If you determine that accommodations are necessary, you may register with Accessibility Services at (404)727-9877 or via e-mail at accessibility@emory.edu. To register with OAS, students must self identify and initiate contact with the OAS office.
+
+## Absence Policy
+
+Missing 25% or more of class meetings will result in automatic failure of a course. In other words, students absent seven (7) or more times, in a course that meets twice a week, will receive a grade of “F” for the course. Absences include trips, appointments, interviews, conferences, illness, injury, as well as simply not showing up. Religious observances, school business, and major illness will be considered; however, notify me in advance of any planned absences and submit your assignment prior to the event. After any absence, it is your responsibility to find out what material, assignments, or announcements you missed.
+
+
+## Lauren's Promise
+
+Lauren McCluskey, a 21-year-old honors student athlete, [was murdered on October 22, 2018 by a man she briefly dated on the University of Utah campus](https://www.sltrib.com/opinion/commentary/2019/02/10/commentary-failing-lauren/). We must all take action to ensure that this never happens again. If you are in immediate danger, call 911 or Emory police (404-727-6111). **I will listen and believe you if someone is threatening you.**
+
+Any form of sexual harassment or violence will not be excused or tolerated at Emory. If you are experiencing sexual assault, domestic violence, or stalking, please report it to me or directly to [Emory's Office of Respect](http://respect.emory.edu/index.html) (470-270-5360).
+
+# Assignments and Grading
+
+Your final grade consists of five homework assignments and a final class project/paper, along with a participation component. I describe each assignment below, with more additional detail provided on our [class website](https://econ470s22.classes.ianmccarthyecon.com/). 
+
+
+
+## Homework assignments
+
+There are 5 homework assignments in this class (one for each module). Details of the assignments are on our [class website](https://econ470s22.classes.ianmccarthyecon.com/). Each assignment will have 10 questions and will be worth 30 points total. Each question is worth 3 points, allocated as follows:
+
+- 1 point for an attempted answer as of the draft due date
+- 1 point for an attempted answer as of the revision due date
+- 1 point for a correct answer as of the final due date
+
+Notice that each assignment has three different stages: a draft stage, a revision stage, and a final stage. The draft stage reflects your original attempt. In the revision stage, we will discuss the homework in class, break into small groups to share feedback and questions, and revise the homework. In the final stage, we will repeat this process one last time with any final questions. Updated assignments are due at each stage.
+
+The homework assignments are almost entirely empirical, with each assignment focusing on a specific identification strategy, research question, and health-related dataset. I will provide all answers in **R**; however, you are free to use any software you'd like. Just keep in mind that I will be best able to answer your questions if you also use **R**. I can also answer most any question if you choose to use **Stata**. I can point you in the right direction with **Python**, but I likely can't provide you with any sample code or specific syntax advice.
+
+Due dates for each stage are listed below:
+
+  - Homework 1: Initial date (1/23), revision date (1/25), final date (1/30)
+  - Homework 2: Initial date (2/13), revision date (2/15), final date (2/20)
+  - Homework 3: Initial date (3/15), revision date (3/20), final date (3/22)
+  - Homework 4: Initial date (4/3), revision date (4/5), final date (4/10)
+  - Homework 5: Initial date (4/17), revision date (4/19), final date (4/24)
+
+
+## Participation
+
+Participation is graded based on your engagement with other students' homework assignments. A large portion of this class is about learning how to work with **real world** data. To do this, we will spend significant in-class time reviewing the assignments and updating our work based on collective feedback. For each assignment, students will be placed into small groups to discuss each others' work. Your participation grade will derive from a peer evaluation based on these small group sessions. 
+
+At the end of each assignment, each member of each group will be asked to rate the feedback of their peers on a scale of 1-3. A value of 1 reflects insufficient effort or engagement, a value of 2 reflects sufficient effort, and a value of 3 reflects excellent effort. I anticipate small groups of at least 4 students, which means you will receive peer scores from at least 3 other students for each assignment. Your median score across all peer evaluations will be used as your participation grade in that assignment. For example, if you receive peer scores of 3, 1, and 1 for a given homework assignment, you would receive a final grade of 1. Meanwhile, peer scores of 3, 3, and 1 would yield an overall peer score of 3. 
+
+At the end of the semester, your peer grades from each assignment will be totaled. Your final participation grade will be based on your total number of participation points out of 12. Note there are 15 possible participation points, so there is some margin for error here if you happen to miss class during a small group session or simply aren't engaged in one of the review sessions for some reason.
+
+
+## Final project
+
+We do not have a final exam in this class. Instead, we have a final project that asks you to select from a list of pre-approved research questions and use the relevant data/identification strategy to answer this question. Please see the [class website](https://econ470s22.classes.ianmccarthyecon.com/) for more details. The final project is worth 110 points (40%) toward your final grade.
+
+
+## Due dates
+
+This section is just to highlight the most important dates on which an assignment is due. Late assignments will receive an automatic 2% reduction for each day the assignment is turned in after the due date.
+
+  - **February 1**: Homework 1
+  - **February 22**: Homework 2
+  - **March 18**: Homework 3
+  - **April 8**: Homework 4
+  - **April 25**: Homework 5
+  - **May 2**: Final Project
+
+
+## Grades
+
+```{r assignments-grades, include=FALSE}
+assignments <- tibble(
+  Assignment = c("Participation", "Homework (30 x 5)", "Final project"),  
+  Points = c(15, 30*5, 110)
+)
+
+assignments <- assignments %>%
+  mutate(Percent = Points / sum(Points),
+         Percent = scales::percent(Percent))
+
+grading <- tibble(
+  Grade = c("A","A-","B+","B","B-","C+"),
+  Range = c("93-100%","90-92%","87-89%","83-86%","80-82%","77-79%"),
+  Grade1=c("C","C-","D+","D","F",""),
+  Range1=c("73-76%","70-72%","67-69%","60-66%","< 60%","")
+)
+```
+
+Each assignment will contribute to your final grade as described below.
+```{r assignments-table, echo=FALSE, results="asis"}
+knitr::kable(assignments)
+```
+
+
+Your final percentage grade comes from your total points as a percent of all possible points available in the class (275). That percent then translates to a letter grade as follows:
+```{r grades-table, echo=FALSE, results="asis"}
+knitr::kable(grading,
+             col.names = c("Grade", "Range", "Grade", "Range"))
+```
+
+# Class Schedule
+
+Below is a preliminary outline (subject to change) of specific topics and resources throughout the semester. Please check the class website for the most up-to-date schedule as well as links to specific resources for each week.
+
+## Module 0: Introduction
+
+### 1/12: Motivation and overview
+
+### 1/19: Data and version control
+
+  - Lesson 2 from [Data Science for Economists](https://github.com/uo-ec607/lectures). This is part of a course from [Grant McDermott](https://grantmcdermott.com/) with a ton of great online resources.
+  - [R for Data Science](https://r4ds.had.co.nz/)
+
+## Module 1: Pricing and Selection on Observables
+
+### 1/24, 1/26: Hospital prices and HCRIS data
+
+  - [Hospital Cost Report Information System (HCRIS)](https://github.com/imccart/HCRIS) repository
+  - See also a similar repository [here](https://github.com/asacarny/hospital-cost-reports) from [Adam Sacarny](http://sacarny.com/)
+
+### 1/31, 2/2: Introduction to causal inference
+  
+  - Chapters 1-2, and 4 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
+  - Chapters 1-5, 10, and 13 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
+  - Chapters 2-3 of [@angrist2009]
+
+### 2/7, 2/9: Selection on observables
+
+  - Chapter 5 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
+  - Chapter 14 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)  
+  
+### 2/14, 2/16: Application to hospital pricing
+
+  
+## Module 2: Demand for Cigarettes and Instrumental Variables
+
+### 2/21, 2/23: Smoking and CDC data
+  
+  - [CDC Tax Burden on Tobacco](https://github.com/imccart/CDC-Tobacco)  
+  
+  
+### 2/28, 3/2: Instrumental variables
+
+  - Chapter 7 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
+  - Chapter 19 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
+  
+### 3/14, 3/16: Estimating demand for cigarettes
+
+## Module 3: Medicare Advantage and Regression Discontinuity
+
+### 3/21, 3/23: Medicare Advantage
+
+  - [Medicare Advantage](https://github.com/imccart/Medicare-Advantage) repository
+
+### 3/28, 3/30: Regression discontinuity
+
+  - Chapter 6 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
+  - Chapter 20 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
+
+### 4/4, 4/6: Quality ratings and insurance choice
+
+## Module 4: Medicaid Expansion and Difference-in-Differences
+
+### 4/11, 4/13: The ACA and Medicaid expansion
+
+  - [Insurance Access and Medicaid Expansion](https://github.com/imccart/Insurance-Access) repository
+
+### 4/18, 4/20: Difference-in-Differences
+
+  - Chapters 8-9 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
+  - Chapters 16-18 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
+  
+### 4/25: Medicaid Expansion and Uninsurance
