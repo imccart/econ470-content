@@ -148,27 +148,27 @@ Due dates for each stage are listed below:
 
 ## Participation
 
-Participation is graded based on your engagement with other students' homework assignments. A large portion of this class is about learning how to work with **real world** data. To do this, we will spend significant in-class time reviewing the assignments and updating our work based on collective feedback. For each assignment, students will be placed into small groups to discuss each others' work. Your participation grade will derive from a peer evaluation based on these small group sessions. 
+Participation is graded based on your engagement in small-group homework discussions. A large portion of this class is about learning how to work with **real world** data. To do this, we will spend significant in-class time reviewing the assignments and updating our work based on collective feedback. For each assignment, students will be placed into small groups to discuss each others' work. Your participation grade will derive from a peer evaluation based on these small group sessions. 
 
-At the end of each assignment, each member of each group will be asked to rate the feedback of their peers on a scale of 1-3. A value of 1 reflects insufficient effort or engagement, a value of 2 reflects sufficient effort, and a value of 3 reflects excellent effort. I anticipate small groups of at least 4 students, which means you will receive peer scores from at least 3 other students for each assignment. Your median score across all peer evaluations will be used as your participation grade in that assignment. For example, if you receive peer scores of 3, 1, and 1 for a given homework assignment, you would receive a final grade of 1. Meanwhile, peer scores of 3, 3, and 1 would yield an overall peer score of 3. 
+At the end of each assignment, each member of each group will be asked to rate the feedback of their peers on a scale of 1-3. A value of 1 reflects insufficient effort or engagement, a value of 2 reflects sufficient effort, and a value of 3 reflects excellent effort. I anticipate small groups of at least 4 students, which means you will receive peer scores from at least 3 other students for each assignment. Your median score across all peer evaluations will be used as your participation grade in that assignment. For example, if you receive peer scores of 3, 3, and 1, your participation score would be 3. If the median value is a tie, your participation grade will be the highest of the possible values. 
 
-At the end of the semester, your peer grades from each assignment will be totaled. Your final participation grade will be based on your total number of participation points out of 12. Note there are 15 possible participation points, so there is some margin for error here if you happen to miss class during a small group session or simply aren't engaged in one of the review sessions for some reason.
+At the end of the semester, your peer grades from each assignment will be totaled. Your final participation grade will be based on your total number of participation points out of 10. Note there are 15 possible participation points, so there is some margin for error here if you happen to miss class during a small group session or simply aren't engaged in one of the review sessions for some reason.
 
 
 ## Final project
 
-We do not have a final exam in this class. Instead, we have a final project that asks you to select from a list of pre-approved research questions and use the relevant data/identification strategy to answer this question. Please see the [class website](https://econ470s22.classes.ianmccarthyecon.com/) for more details. The final project is worth 110 points (40%) toward your final grade.
+We do not have a final exam in this class. Instead, we have a final project that asks you to submit a 5-page policy brief. Please see the [class website](https://econ470s22.classes.ianmccarthyecon.com/) for more details. The policy brief is worth 90 points (36%) toward your final grade.
 
 
 ## Due dates
 
-This section is just to highlight the most important dates on which an assignment is due. Late assignments will receive an automatic 2% reduction for each day the assignment is turned in after the due date.
+This section is just to highlight the final due dates for each assignment. Late assignments will receive an automatic 2% reduction for each day the assignment is turned in after the due date.
 
-  - **February 1**: Homework 1
-  - **February 22**: Homework 2
-  - **March 18**: Homework 3
-  - **April 8**: Homework 4
-  - **April 25**: Homework 5
+  - **January 30**: Homework 1
+  - **February 20**: Homework 2
+  - **March 22**: Homework 3
+  - **April 10**: Homework 4
+  - **April 24**: Homework 5
   - **May 2**: Final Project
 
 
@@ -177,7 +177,7 @@ This section is just to highlight the most important dates on which an assignmen
 ```{r assignments-grades, include=FALSE}
 assignments <- tibble(
   Assignment = c("Participation", "Homework (30 x 5)", "Final project"),  
-  Points = c(15, 30*5, 110)
+  Points = c(10, 30*5, 90)
 )
 
 assignments <- assignments %>%
@@ -198,7 +198,7 @@ knitr::kable(assignments)
 ```
 
 
-Your final percentage grade comes from your total points as a percent of all possible points available in the class (275). That percent then translates to a letter grade as follows:
+Your final percentage grade comes from your total points as a percent of all possible points available in the class (250). That percent then translates to a letter grade as follows:
 ```{r grades-table, echo=FALSE, results="asis"}
 knitr::kable(grading,
              col.names = c("Grade", "Range", "Grade", "Range"))
@@ -210,70 +210,72 @@ Below is a preliminary outline (subject to change) of specific topics and resour
 
 ## Module 0: Introduction
 
-### 1/12: Motivation and overview
+### 1/11: Motivation and overview
 
-### 1/19: Data and version control
+### 1/16: Data and version control
 
   - Lesson 2 from [Data Science for Economists](https://github.com/uo-ec607/lectures). This is part of a course from [Grant McDermott](https://grantmcdermott.com/) with a ton of great online resources.
   - [R for Data Science](https://r4ds.had.co.nz/)
 
 ## Module 1: Pricing and Selection on Observables
 
-### 1/24, 1/26: Hospital prices and HCRIS data
+### 1/18, 1/23: Hospital prices and HCRIS data
 
   - [Hospital Cost Report Information System (HCRIS)](https://github.com/imccart/HCRIS) repository
   - See also a similar repository [here](https://github.com/asacarny/hospital-cost-reports) from [Adam Sacarny](http://sacarny.com/)
 
-### 1/31, 2/2: Introduction to causal inference
+### 1/25, 1/30: Introduction to causal inference
   
   - Chapters 1-2, and 4 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapters 1-5, 10, and 13 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
   - Chapters 2-3 of [@angrist2009]
 
-### 2/7, 2/9: Selection on observables
+### 2/1, 2/6: Selection on observables
 
   - Chapter 5 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapter 14 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)  
   
-### 2/14, 2/16: Application to hospital pricing
+### 2/8, 2/13: Application to hospital pricing
 
   
 ## Module 2: Demand for Cigarettes and Instrumental Variables
 
-### 2/21, 2/23: Smoking and CDC data
+### 2/15, 2/20: Smoking and CDC data
   
   - [CDC Tax Burden on Tobacco](https://github.com/imccart/CDC-Tobacco)  
   
   
-### 2/28, 3/2: Instrumental variables
+### 2/22, 2/27: Instrumental variables
 
   - Chapter 7 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapter 19 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
   
-### 3/14, 3/16: Estimating demand for cigarettes
+### 3/1: Estimating demand for cigarettes
 
 ## Module 3: Medicare Advantage and Regression Discontinuity
 
-### 3/21, 3/23: Medicare Advantage
+### 3/13, 3/15: Medicare Advantage
 
   - [Medicare Advantage](https://github.com/imccart/Medicare-Advantage) repository
 
-### 3/28, 3/30: Regression discontinuity
+### 3/20, 3/22: Regression discontinuity
 
   - Chapter 6 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapter 20 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
 
-### 4/4, 4/6: Quality ratings and insurance choice
+### 3/27, 3/29: Quality ratings and insurance choice
 
 ## Module 4: Medicaid Expansion and Difference-in-Differences
 
-### 4/11, 4/13: The ACA and Medicaid expansion
+### 4/3, 4/5: The ACA and Medicaid expansion
 
   - [Insurance Access and Medicaid Expansion](https://github.com/imccart/Insurance-Access) repository
 
-### 4/18, 4/20: Difference-in-Differences
+### 4/10, 4/12: Difference-in-Differences
 
   - Chapters 8-9 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapters 16-18 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
   
-### 4/25: Medicaid Expansion and Uninsurance
+### 4/17: Medicaid Expansion and Uninsurance
+
+### 4/19, 4/24
