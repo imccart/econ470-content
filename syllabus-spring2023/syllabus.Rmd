@@ -34,6 +34,7 @@ knitr::opts_chunk$set(warning=F, message=F)
 library(googledrive)
 library(bibtex)
 library(dplyr)
+library(tidyverse)
 library(tibble)
 library(RefManageR)
 drive_download("bibliography/BibTeX_Library.bib", overwrite=TRUE, path='BibTeX_Library.bib')
@@ -141,7 +142,7 @@ Due dates for each stage are listed below:
 
   - Homework 1: Initial date (1/23), revision date (1/25), final date (1/30)
   - Homework 2: Initial date (2/13), revision date (2/15), final date (2/20)
-  - Homework 3: Initial date (3/15), revision date (3/20), final date (3/22)
+  - Homework 3: Initial date (3/13), revision date (3/15), final date (3/20)
   - Homework 4: Initial date (4/3), revision date (4/5), final date (4/10)
   - Homework 5: Initial date (4/17), revision date (4/19), final date (4/24)
 
@@ -166,10 +167,10 @@ This section is just to highlight the final due dates for each assignment. Late 
 
   - **January 30**: Homework 1
   - **February 20**: Homework 2
-  - **March 22**: Homework 3
+  - **March 20**: Homework 3
   - **April 10**: Homework 4
   - **April 24**: Homework 5
-  - **May 2**: Final Project
+  - **TBD**: Final Project
 
 
 ## Grades
@@ -210,72 +211,68 @@ Below is a preliminary outline (subject to change) of specific topics and resour
 
 ## Module 0: Introduction
 
-### 1/11: Motivation and overview
-
-### 1/16: Data and version control
+### 1/11: Motivation and introduction to version control
 
   - Lesson 2 from [Data Science for Economists](https://github.com/uo-ec607/lectures). This is part of a course from [Grant McDermott](https://grantmcdermott.com/) with a ton of great online resources.
   - [R for Data Science](https://r4ds.had.co.nz/)
 
-## Module 1: Pricing and Selection on Observables
-
-### 1/18, 1/23: Hospital prices and HCRIS data
-
-  - [Hospital Cost Report Information System (HCRIS)](https://github.com/imccart/HCRIS) repository
-  - See also a similar repository [here](https://github.com/asacarny/hospital-cost-reports) from [Adam Sacarny](http://sacarny.com/)
-
-### 1/25, 1/30: Introduction to causal inference
+### 1/16, 1/18: Introduction to causal inference
   
   - Chapters 1-2, and 4 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapters 1-5, 10, and 13 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
   - Chapters 2-3 of [@angrist2009]
 
-### 2/1, 2/6: Selection on observables
+### 1/23, 1/25: Submission and revision of Homework 1 (Version Control and Data Management)
+
+## Module 1: Pricing and Selection on Observables
+
+### 1/30, 2/1: Hospital prices and HCRIS data  
+
+  - [Hospital Cost Report Information System (HCRIS)](https://github.com/imccart/HCRIS) repository
+  - See also a similar repository [here](https://github.com/asacarny/hospital-cost-reports) from [Adam Sacarny](http://sacarny.com/)
+
+### 2/6, 2/8: Selection on observables
 
   - Chapter 5 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapter 14 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)  
   
-### 2/8, 2/13: Application to hospital pricing
+### 2/13, 2/15: Submission and revision of Homework 2 (Hospital Prices and Selection on Observables)
 
-  
 ## Module 2: Demand for Cigarettes and Instrumental Variables
 
-### 2/15, 2/20: Smoking and CDC data
+### 2/20, 2/22: Smoking and CDC data
   
   - [CDC Tax Burden on Tobacco](https://github.com/imccart/CDC-Tobacco)  
+  - Initial submission and revision of Homework 2
   
-  
-### 2/22, 2/27: Instrumental variables
+### 2/27, 3/1: Instrumental variables
 
   - Chapter 7 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapter 19 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
   
-### 3/1: Estimating demand for cigarettes
+### 3/13, 3/15: Submission and revision of Homework 3 (Demand for Cigarettes and IV)
 
 ## Module 3: Medicare Advantage and Regression Discontinuity
 
-### 3/13, 3/15: Medicare Advantage
+### 3/20, 3/22: Medicare Advantage
 
   - [Medicare Advantage](https://github.com/imccart/Medicare-Advantage) repository
 
-### 3/20, 3/22: Regression discontinuity
+### 3/27, 3/29: Regression discontinuity
 
   - Chapter 6 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapter 20 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
 
-### 3/27, 3/29: Quality ratings and insurance choice
+### 4/3, 4/5: Submission and revision of Homework 4 (Quality Ratings, Insurance Choice, and RD)
 
 ## Module 4: Medicaid Expansion and Difference-in-Differences
 
-### 4/3, 4/5: The ACA and Medicaid expansion
-
-  - [Insurance Access and Medicaid Expansion](https://github.com/imccart/Insurance-Access) repository
-
 ### 4/10, 4/12: Difference-in-Differences
 
+  - [Insurance Access and Medicaid Expansion](https://github.com/imccart/Insurance-Access) repository
   - Chapters 8-9 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapters 16-18 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
   
-### 4/17: Medicaid Expansion and Uninsurance
+### 4/17, 4/19: Submission and revision of Homework 5 (Medicaid Expansion, Uninsurance, and DiD)
 
-### 4/19, 4/24
+### 4/24: Discussion of final policy briefs
