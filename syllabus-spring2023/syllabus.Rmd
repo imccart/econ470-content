@@ -15,8 +15,8 @@ csl: "chicago-syllabus-no-bib.csl"
 
 email: "ian.mccarthy@emory.edu"
 web: "econ470s23.classes.ianmccarthyecon.com"
-officehours: "MW 1:30pm-3:00pm"
-office: "PAIS 573"
+officehours: "MW 1:30pm-2:30pm"
+office: "R. Rollins, R432"
 classroom: "Rich 211"
 classhours: "MW 10:00am-11:15am"
 
@@ -95,7 +95,7 @@ All regular class meetings will take place in the **Rich Memorial Building, Room
 
 ## Office hours
 
-My designated office hours will be on Monday and Wednesday from 1:30pm to 3:00pm in PAIS 573. While we call these "office hours" they really should be "student hours". These are set times dedicated to all of you. This means that I will be in my office waiting for you to come by with whatever questions you have. I'm also available outside of those designated times. I just ask that you schedule an appointment in advance. [Make an appointment with me here](https://mccarthy-meetings.youcanbook.me/). Unless we arrange otherwise, my office hours will be exclusively in-person.
+My designated office hours will be on Monday and Wednesday from 1:30pm to 2:30pm in R. Rollins, R432. While we call these "office hours" they really should be "student hours". These are set times dedicated to all of you. This means that I will be in my office waiting for you to come by with whatever questions you have. I'm also available outside of those designated times. I just ask that you schedule an appointment in advance. [Make an appointment with me here](https://mccarthy-meetings.youcanbook.me/). Unless we arrange otherwise, my office hours will be exclusively in-person.
 
 For any questions that you don't think need a full meeting, you can also always reach out to me through email. I do my best to respond within 24 hours to all emails.
 
