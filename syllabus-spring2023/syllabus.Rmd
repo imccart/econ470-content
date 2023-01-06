@@ -102,7 +102,7 @@ For any questions that you don't think need a full meeting, you can also always 
 
 ## Academic integrity
 
-The Honor Code is in effect throughout the semester. By taking this course, you affirm that it is a violation of the code to cheat on exams, to plagiarize, to deviate from the teacher’s instructions about collaboration on work that is submitted for grades, to give false information to a faculty member, and to undertake any other form of academic misconduct. You agree that the instructor is entitled to move you to another seat during examinations, without explanation. You also affirm that if you witness others violating the code you have a duty to report them to the honor council. Students who violate the Honor Code may be subject to a written mark on their record, failure of the course, suspension, permanent dismissal, or a combination of these and other sanctions. The Honor Code may be reviewed at: [Emory Honor Code Policies](http://catalog.college.emory.edu/academic/policies-regulations/honor-code.html).
+The Honor Code is in effect throughout the semester. By taking this course, you affirm that it is a violation of the code to cheat on exams, to plagiarize, to deviate from the teacher’s instructions about collaboration on work that is submitted for grades, to give false information to a faculty member, and to undertake any other form of academic misconduct. You agree that the instructor is entitled to move you to another seat during examinations, without explanation. You also affirm that if you witness others violating the code you have a duty to report them to the honor council. Students who violate the Honor Code may be subject to a written mark on their record, failure of the course, suspension, permanent dismissal, or a combination of these and other sanctions. The Honor Code may be reviewed [here](http://catalog.college.emory.edu/academic/policies-regulations/honor-code.html).
 
 
 ## Accessibility services
@@ -216,7 +216,7 @@ Below is a preliminary outline (subject to change) of specific topics and resour
   - Lesson 2 from [Data Science for Economists](https://github.com/uo-ec607/lectures). This is part of a course from [Grant McDermott](https://grantmcdermott.com/) with a ton of great online resources.
   - [R for Data Science](https://r4ds.had.co.nz/)
 
-### 1/16, 1/18: Introduction to causal inference
+### 1/18: Introduction to causal inference
   
   - Chapters 1-2, and 4 of [Causal Inference: The Mixtape](https://mixtape.scunning.com/)
   - Chapters 1-5, 10, and 13 of [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
