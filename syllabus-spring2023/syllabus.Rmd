@@ -158,7 +158,7 @@ At the end of the semester, your peer grades from each assignment will be totale
 
 ## Final project
 
-We do not have a final exam in this class. Instead, we have a final project that asks you to submit a 5-page policy brief. Please see the [class website](https://econ470s23.classes.ianmccarthyecon.com/) for more details. The policy brief is worth 90 points (36%) toward your final grade.
+We do not have a final exam in this class. Instead, we have a final project that asks you to submit a 5-page policy brief. Please see the [class website](https://econ470s23.classes.ianmccarthyecon.com/) for more details. The policy brief is worth 90 points (36%) toward your final grade and is due on the last day of class.
 
 
 ## Due dates
@@ -170,7 +170,7 @@ This section is just to highlight the final due dates for each assignment. Late 
   - **March 20**: Homework 3
   - **April 10**: Homework 4
   - **April 24**: Homework 5
-  - **May 3**: Final Project
+  - **April 24**: Final Project
 
 
 ## Grades
