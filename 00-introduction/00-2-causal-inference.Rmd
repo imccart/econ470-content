@@ -1,5 +1,5 @@
 ---
-title: "Module 1: Hospital Pricing and Selection on Observables"
+title: "Module 0: Getting Started"
 subtitle: "Part 2: Introduction to Causal Inference"
 author: Ian McCarthy | Emory University
 date: Econ 470 & HLTH 470 #"`r format(Sys.time(), '%d %B %Y')`"

@@ -141,7 +141,7 @@ name: syllabus
 
 <html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
 
-(Read the full document [here](https://imccart.github.io/econ470-content/syllabus-spring2022/syllabus.pdf).)
+(Read the full document [here](https://imccart.github.io/econ470-content/syllabus-spring2023/syllabus.pdf).)
 
 ---
 # Why this course?
@@ -203,7 +203,7 @@ name: syllabus
 
 - Homework (x5)
 
-- Research project
+- Policy brief
 
 - Participation
 
@@ -212,9 +212,9 @@ name: syllabus
 
 | Component                           | Weight |
 |:-|-:|
-| 5 × homework assignments (11% each) | 55% |
-| Research project                		| 40% |
-| Participation  						          | 5%  |
+| 5 × homework assignments (12% each) | 60% |
+| Final project                   		| 36% |
+| Participation  						          | 4%  |
 
 
 
@@ -288,16 +288,6 @@ For help and troubleshooting with Git and GitHub, take a look at Jenny Bryan's h
 
 <html>&#9745;</html> Did you register an account in GitHub?
 
----
-# Altnernative setup...
-
-Just use the cloud!
-
-- We have our own virtual computer via AWS
-- This computer has all the space you need and the data are already available
-- Downside: the computer will be "on" during designated times only
-- Details of this are on Canvas
-
 
 <!-- New Section -->
 ---
@@ -357,10 +347,3 @@ Until you are a Git(Hub) expert...
 2. Clone to desktop with RStudio
 
 3. See http://happygitwithr.com for instructions on linking your local repo with a new upstream remote
-
-
-
----
-# Working with AWS
-
-Let's do this live!
