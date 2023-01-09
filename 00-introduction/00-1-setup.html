@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Module 0: Getting Started</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Ian McCarthy | Emory University" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#E68080"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Module 0: Getting Started
+]
+.subtitle[
+## Part 1: Class Overview and Software Setup
+]
+.author[
+### Ian McCarthy | Emory University
+]
+.date[
+### Econ 470 &amp; HLTH 470
+]
+
+---
+
+
+&lt;!-- Adjust some CSS code for font size, maintain R code font size --&gt;
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code, .remark-inline-code { 
+    font-size: 20px;
+}
+&lt;/style&gt;
+
+
+&lt;!-- Set R options for how code chunks are displayed and load packages --&gt;
+
+
+
+
+
+# Motivating question
+
+**Does health care spending improve health?**
+
+???
+Let's motivate the course with this simple question...does health care spending improve our health?
+
+---
+# Spending and Health
+
+
+
+
+```r
+ggplot(data = (dartmouth.data %&gt;% filter(Year==2015)), 
+       mapping = aes(x = Expenditures, y = Total_Mortality)) + 
+  geom_point(size = 1) + theme_bw() + scale_x_continuous(label = comma) +
+  geom_smooth(method="lm", se=FALSE, color="blue", size=1/2) +
+  labs(x = "Spending Per Capita ($US)",
+       y = "Mortality Rate",
+       title = "Mortality and Health Care Spending")
+```
+.plot-callout[
+&lt;img src="00-1-setup_files/figure-html/dartmouth-callout-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+
+---
+# Spending and Health
+
+&lt;img src="00-1-setup_files/figure-html/dartmouth-output-1.png" style="display: block; margin: auto;" /&gt;
+
+
+???
+This shows a positive relationship between health care spending and mortality. So health care spending is actually negatively correlated with health. What does this mean?
+
+---
+# Spending and Health
+
+- Does medical spending make us sicker?
+- What else might explain this relationship?
+
+.plot-callout[
+&lt;img src="00-1-setup_files/figure-html/dartmouth-callout-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+???
+Sicker people are more likely to need health care. So in this simple graph, we're actually picking up the fact that sicker people are more likely to die. In econometrics, this problem goes by a few names, such as endogeneity or selection.
+
+---
+# Goals of this course.
+
+1. Understand and implement selected methods for causal inference
+--
+&lt;br&gt;
+2. Along the way...data management and version control with real data
+
+--
+&lt;br&gt;
+3. Summarize, visualize, and explain research results
+
+
+&lt;!-- New Section --&gt;
+---
+class: inverse, center, middle
+name: syllabus
+
+# Syllabus highlights
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+(Read the full document [here](https://imccart.github.io/econ470-content/syllabus-spring2023/syllabus.pdf).)
+
+---
+# Why this course?
+
+1. Major problems that need solutions
+
+2. Need good, convincing empirical work for policy
+
+3. Working with data is hard, particularly health care data
+
+4. Your work should be transparent and reproducible
+
+---
+# Structure
+
+- Very applied in nature
+
+- *Methods* for causal inference
+
+  - Selection on observables (regression, re-weighting, matching, propensity scores)
+  
+  - Instrumental variables
+  
+  - Regression discontinuity
+  
+  - Difference-in-differences
+
+
+---
+# Structure
+
+- *Substantive* areas
+
+  - Hospital pricing, policy, and competition
+  
+  - Cigarette taxes and demand
+  
+  - Medicare Advantage and quality disclosure
+  
+  - Medicaid expansion and health insurance
+
+
+---
+# Structure
+
+- *Datasets* from the real world
+
+  - Hospital Cost Report Information System (HCRIS)
+  
+  - Centers for Disease Control (CDC)
+  
+  - Medicare Advantage data
+  
+  - Behavioral Risk Factor Surveillance System (BRFSS), Medicaid, Health Insurance Exchanges
+  
+  
+---
+# Assignments
+
+- Homework (x5)
+
+- Policy brief
+
+- Participation
+
+---
+# Grading
+
+| Component                           | Weight |
+|:-|-:|
+| 5 × homework assignments (12% each) | 60% |
+| Final project                   		| 36% |
+| Participation  						          | 4%  |
+
+
+
+&lt;!-- New Section --&gt;
+---
+class: inverse, center, middle
+name: software
+
+# Software Installation
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Software Installation
+
+1. Download [R](https://www.r-project.org/)
+
+2. Download [RStudio](https://www.rstudio.com/products/rstudio/download/preview/)
+
+3. Download [Git](https://git-scm.com/downloads)
+
+4. Create an account on [GitHub](https://github.com/)
+
+--
+
+For help and troubleshooting with Git and GitHub, take a look at Jenny Bryan's http://happygitwithr.com.
+
+
+---
+# Checklist
+
+&lt;html&gt;&amp;#9745;&lt;/html&gt; Do you have the most recent version of R?
+  
+  ```r
+  version$version.string
+  ```
+  
+  ```
+  ## [1] "R version 4.2.2 Patched (2022-11-10 r83330)"
+  ```
+
+
+&lt;html&gt;&amp;#9745;&lt;/html&gt; Do you have the most recent version of RStudio? (The [preview version](https://www.rstudio.com/products/rstudio/download/preview/) is fine.)
+  
+  ```r
+  RStudio.Version()$version
+  ## Requires an interactive session but should return something like "[1] ‘1.4.1717’"
+  ```
+
+&lt;html&gt;&amp;#9745;&lt;/html&gt; Have you updated all of your R packages? 
+  
+  ```r
+  update.packages(ask = FALSE, checkBuilt = TRUE)
+  ```
+  
+---
+# Checklist
+
+- Open up the [shell](http://happygitwithr.com/shell.html#shell)
+
+- Windows users, make sure that you installed a Bash-compatible version of the shell. If you installed [Git for Windows](https://gitforwindows.org), then you should be good to go.
+
+
+---
+# Checklist
+
+&lt;html&gt;&amp;#9745;&lt;/html&gt; Which version of Git have you installed?
+  
+  ```r
+  git --version
+  ```
+
+&lt;html&gt;&amp;#9745;&lt;/html&gt; Did you introduce yourself to Git? (Substitute in your details.)
+  
+  ```r
+  git config --global user.name 'Ian McCarthy'
+  git config --global user.email 'ian.mccarthy@emory.edu'
+  git config --global --list
+  ```
+
+&lt;html&gt;&amp;#9745;&lt;/html&gt; Did you register an account in GitHub?
+
+
+&lt;!-- New Section --&gt;
+---
+class: inverse, center, middle
+name: git_rstudio
+
+# Practice with Git and RStudio
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Before next class (see http://happygitwithr.com)
+
+1. Download [R](https://www.r-project.org/)
+
+2. Download [RStudio](https://www.rstudio.com/products/rstudio/download/preview/)
+
+3. Download [Git](https://git-scm.com/downloads)
+
+4. Create an account on [GitHub](https://github.com/)
+
+5. Connect RStudio to Git and GitHub
+
+6. Start/clone/fork a repository for this class 
+
+
+---
+# Setting things up
+
+Now we're going to clone a GitHub repository (repo) using RStudio. The video below is from Grant McDermott's class.
+
+&lt;center&gt;
+&lt;iframe width="600" height="350" src="https://raw.githack.com/uo-ec607/lectures/master/02-git/02-Git.html#15" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/center&gt;
+
+---
+# Some common mistakes for windows users
+
+- Windows folders are *not* files...there is no content without a file. You can't commit or push changes without content.
+
+- Let RStudio/GitHub create the directory (main folder) for you.
+
+- If you're working across devices on your own repo, be sure to pull before starting and push afterward.
+
+- Avoid spaces in file names. Avoid them at all costs. *DO NOT PUT SPACES IN YOUR FILE NAMES.*
+
+&gt;*"A space in a file name is a space in your soul."*
+
+
+---
+# Ideal workflow
+
+Until you are a Git(Hub) expert...
+
+1. Start project on GitHub (fork from another repo if needed)
+
+2. Clone to desktop with RStudio
+
+3. See http://happygitwithr.com for instructions on linking your local repo with a new upstream remote
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
