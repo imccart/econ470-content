@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Module 0: Getting Started</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Ian McCarthy | Emory University" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#E68080"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Module 0: Getting Started
+]
+.subtitle[
+## Part 3: Basics of Data Management in R
+]
+.author[
+### Ian McCarthy | Emory University
+]
+.date[
+### Econ 470 &amp; HLTH 470
+]
+
+---
+
+class: inverse, center, middle
+name: real_data
+
+
+&lt;!-- Adjust some CSS code for font size, maintain R code font size --&gt;
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code, .remark-inline-code { 
+    font-size: 20px;
+}
+&lt;/style&gt;
+
+
+&lt;!-- Set R options for how code chunks are displayed and load packages --&gt;
+
+
+
+
+
+# Real World
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Practice data versus the real world
+
+&lt;br&gt;
+.center[
+  ![:scale 800px](https://media.giphy.com/media/3oz8xGme7vEndhrsly/giphy.gif)
+]
+
+---
+# Advice 1: Be patient and careful in your coding
+
+.center[
+  ![](https://media.giphy.com/media/fsQJBs0rtxpYoN4m0J/giphy.gif)
+]
+
+---
+# Advice 2: Comment, comment, comment
+
+You don't want to end up like this guy...
+
+.center[
+  ![:scale 600px](https://media.giphy.com/media/S7u66urzxc2J2/giphy.gif)
+]
+
+&lt;!-- New Section --&gt;
+---
+class: inverse, center, middle
+name: ma_data
+
+# Medicare Advantage
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Medicare Advantage 
+
+Let's work with the [Medicare Advantage GitHub repository](https://github.com/imccart/Medicare-Advantage)
+
+
+---
+# Access the data
+
+First step is to download the raw data that we'll be using, or work in AWS:
+ - [Monthly Enrollment](https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/MCRAdvPartDEnrolData/Monthly-Enrollment-by-Contract-Plan-State-County.html)
+ - [Plan Characteristics](https://www.cms.gov/Medicare/Prescription-Drug-Coverage/PrescriptionDrugCovGenIn/index)
+ - [Service Areas](https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/MCRAdvPartDEnrolData/MA-Contract-Service-Area-by-State-County.html)
+
+--
+
+Lots more out there, but this is enough for now.
+
+---
+# 1) Contract/enrollment info
+
+```r
+for (y in 2007:2015) {
+  ## Basic contract/plan information
+  ma.path=paste0(path.data.ma,"/monthly-ma-and-pdp-enrollment-by-cpsc/CPSC_Contract_Info_",y,"_01.csv")
+  contract.info=read_csv(ma.path,
+                         skip=1,
+                         col_names = c("contractid","planid","org_type","plan_type",
+                                       "partd","snp","eghp","org_name","org_marketing_name",
+                                       "plan_name","parent_org","contract_date"),
+                         col_types = cols(
+                           contractid = col_character(),
+                           planid = col_double(),
+                             ...
+                           ))
+```
+
+???
+This imports the contract information (name, insurer, plan identifiers) into an object `contract.info` from the filepath in `ma.path`.
+
+---
+# 1) Contract/enrollment info
+
+```r
+    ## Clean the contract level data
+  contract.info = contract.info %&gt;%
+    group_by(contractid, planid) %&gt;%
+    mutate(id_count=row_number())
+
+  contract.info = contract.info %&gt;%
+    group_by(contractid, planid) %&gt;%
+    mutate(id_count=row_number())
+```
+
+???
+This reduces the data to unique contract and plan IDs. Note the `row_number()` to assign a running count for each pair.
+
+---
+# 1) Contract/enrollment info
+
+```r
+    ## Enrollments per plan
+  enroll.info=read_csv(paste0("data/input/monthly-ma-and-pdp-enrollment-by-cpsc/CPSC_Enrollment_Info_",y,"_01.csv"),
+                       skip=1,
+                       col_names = c("contractid","planid","ssa","fips","state","county","enrollment"),
+                       col_types = cols(
+                       contractid = col_character(),
+                       planid = col_double(),
+                       ssa = col_double(),
+                       fips = col_double(),
+                       state = col_character(),
+                       county = col_character(),
+                       enrollment = col_double()
+                       ),na="*")
+```
+
+???
+This imports the enrollment data (count of enrollees) into an object `enroll.info` from the filepath `ma.path`
+
+---
+# 1) Contract/enrollment info
+
+```r
+    ## Merge contract info with enrollment info
+  plan.data = contract.info %&gt;%
+    left_join(enroll.info, by=c("contractid", "planid")) %&gt;%
+    mutate(year=y)
+```
+
+???
+This merges the contract details with enrollments. Note that this is for each year.
+
+---
+# 1) Contract/enrollment info
+
+```r
+  ## Fill in missing fips codes (by state and county)
+  plan.data = plan.data %&gt;%
+    group_by(state, county) %&gt;%
+    fill(fips)
+
+  ## Fill in missing plan characteristics by contract and plan id
+  plan.data = plan.data %&gt;%
+    group_by(contractid, planid) %&gt;%
+    fill(plan_type, partd, snp, eghp, plan_name)
+  
+  ## Fill in missing contract characteristics by contractid
+  plan.data = plan.data %&gt;%
+    group_by(contractid) %&gt;%
+    fill(org_type,org_name,org_marketing_name,parent_org)
+```
+
+???
+Some cleanup by filling in missing values using "nearby" values
+
+---
+# 1) Contract/enrollment info
+
+```r
+  ## Collapse from monthly data to yearly
+  plan.year = plan.data %&gt;%
+    group_by(contractid, planid, fips) %&gt;%
+    arrange(contractid, planid, fips) %&gt;%
+    rename(avg_enrollment=enrollment)
+  
+  write_rds(plan.year,paste0("data/output/ma_data_",y,".rds"))
+```
+
+???
+Summarize monthly data to the yearly level, and save data object as `ma_data_` (year)
+
+---
+# 1) Contract/enrollment info
+
+```r
+full.ma.data &lt;- read_rds("data/output/ma_data_2007.rds")
+for (y in 2008:2015) {
+  full.ma.data &lt;- rbind(full.ma.data,read_rds(paste0("data/output/ma_data_",y,".rds")))
+}
+```
+
+???
+
+Appends yearly data into one large file, `full.ma.data`
+
+---
+# All together now
+
+Now let's do this together...
+1. Copy data from OneDrive
+2. Initialize repository in GitHub
+3. Clone to local computer
+4. Follow some practice code, available [here](00-test-ma-code.R)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
