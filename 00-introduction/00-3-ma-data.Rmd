@@ -117,7 +117,7 @@ Let's work with the [Medicare Advantage GitHub repository](https://github.com/im
 ---
 # Access the data
 
-First step is to download the raw data that we'll be using, or work in AWS:
+First step is to download the raw data that we'll be using:
  - [Monthly Enrollment](https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/MCRAdvPartDEnrolData/Monthly-Enrollment-by-Contract-Plan-State-County.html)
  - [Plan Characteristics](https://www.cms.gov/Medicare/Prescription-Drug-Coverage/PrescriptionDrugCovGenIn/index)
  - [Service Areas](https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/MCRAdvPartDEnrolData/MA-Contract-Service-Area-by-State-County.html)
