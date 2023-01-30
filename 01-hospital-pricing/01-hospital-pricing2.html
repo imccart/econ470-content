@@ -18,10 +18,18 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
+.title[
 # Module 1: Hospital Pricing and Selection on Observables
-## Part 2: Introduction to Causal Inference
+]
+.subtitle[
+## Part 2: Matching and Weighting
+]
+.author[
 ### Ian McCarthy | Emory University
+]
+.date[
 ### Econ 470 &amp; HLTH 470
+]
 
 ---
 
@@ -47,388 +55,319 @@ class: center, middle, inverse, title-slide
 
 
 
-# Why causal inference?
+# Goal
+
+Find covariates `\(X_{i}\)` such that the following assumptions are plausible:
 
 
+1. Selection on observables: `$$Y_{0i}, Y_{1i} \perp\!\!\!\perp D_{i} | X_{i}$$`
+2. Common support: `$$0 &lt; \text{Pr}(D_{i}=1|X_{i}) &lt; 1$$`
 
-
-
-
-
-&lt;img src="01-hospital-pricing2_files/figure-html/dartmouth-output-1.png" style="display: block; margin: auto;" /&gt;
-
-
----
-# Why causal inference?
-
-Another example: **What price should we charge for a night in a hotel?**
 
 --
 
-.pull-left[
-**Machine Learning**
 
-- Focuses on prediction
-- High prices are strongly correlated with higher sales
-- Increase prices to attract more people?
+Then we can use `\(X_{i}\)` to group observations and use expectations for control as the predicted counterfactuals among treated, and vice versa. 
 
-]
-
-.pull-right[
-**Causal Inference**
-
-- Focuses on **counterfactuals**
-- What would sales look like if prices were higher?
-
-]
 
 ---
-# Goal of Causal Inference
+# Assumption 1: Selection on Observables
 
-- **Goal:** Estimate effect of some policy or program
+`\(E[Y_{1}|D,X]=E[Y_{1}|X]\)`
 
-- Key building block for causal inference is the idea of **potential outcomes**
+
+--
+
+
+In words...nothing unobserved that determines treatment selection and affects your outcome of interest.
+
 
 ---
-# Some notation
+# Assumption 1: Selection on Observables
 
-**Treatment** `\(D_{i}\)`
+- Example of selection on observables from *Mastering Metrics*
 
-`$$D_{i}=\begin{cases}
- 1 \text{ with treatment} \\
- 0 \text{ without treatment}
+
+---
+# Assumption 2: Common Support
+Someone of each type must be in both the treated and untreated groups
+
+--
+`$$0 &lt; \text{Pr}(D=1|X) &lt;1$$`
+
+
+
+
+---
+# Causal inference with observational data
+
+With selection on observables and common support:
+
+1. Subclassification
+2. Matching estimators
+3. Reweighting estimators
+4. Regression estimators
+
+
+
+---
+# Subclassification
+
+Sum the average treatment effects by group, and take a weighted average over those groups:
+
+`$$ATE=\sum_{i=1}^{N} P(X=x_{i}) \left(E[Y | X, D=1] - E[Y | X, D=0]\right)$$`
+
+---
+# Subclassification
+
+- Difference between treated and controls
+- Weighted average by probability of given group (proportion of sample)
+- What if outcome is unobserved for treatment or control group for a given subclass?
+
+
+--
+
+- This is the *curse of dimensionality*
+
+---
+# Matching: The process
+1. For each observation `\(i\)`, find the `\(m\)` "nearest" neighbors, `\(J_{m}(i)\)`. 
+2. Impute `\(\hat{Y}_{0i}\)` and `\(\hat{Y}_{1i}\)` for each observation:&lt;br&gt;
+`$$\hat{Y}_{0i} = \begin{cases}
+    Y_{i} &amp; \text{if} &amp; D_{i}=0 \\
+    \frac{1}{m} \sum_{j \in J_{m}(i)} Y_{j} &amp; \text{if} &amp; D_{i}=1 
+\end{cases}$$`
+`$$\hat{Y}_{1i} = \begin{cases}
+    Y_{i} &amp; \text{if} &amp; D_{i}=1 \\
+    \frac{1}{m} \sum_{j \in J_{m}(i)} Y_{j} &amp; \text{if} &amp; D_{i}=0 
 \end{cases}$$`
 
+3. Form "matched" ATE:&lt;br&gt;
+`\(\hat{\delta}^{\text{match}} = \frac{1}{N} \sum_{i=1}^{N} \left(\hat{Y}_{1i} - \hat{Y}_{0i} \right)\)`
 
 ---
-# Some notation
+# Matching: Defining "nearest"
 
-**Potential outcomes**
+1. Euclidean distance:&lt;br&gt;
+`\(\sum_{k=1}^{K} (X_{ik} - X_{jk})^{2}\)`
 
-- `\(Y_{1i}\)` is the potential outcome for unit `\(i\)` with treatment
-- `\(Y_{0i}\)` is the potential outcome for unit `\(i\)` without treatment
+2. Scaled Euclidean distance:&lt;br&gt;
+`\(\sum_{k=1}^{K} \frac{1}{\sigma_{X_{k}}^{2}} (X_{ik} - X_{jk})^{2}\)`
 
----
-# Some notation
-
-**Observed outcome**
-
-`$$Y_{i}=Y_{1i} \times D_{i} + Y_{0i} \times (1-D_{i})$$`
-or
-
-`$$Y_{i}=\begin{cases}
-Y_{1i} \text{ if } D_{i}=1 \\
-Y_{0i} \text{ if } D_{i}=0
-\end{cases}$$`
-
-
-.footnote[
-Assumes **SUTVA** (stable unit treatment value assumption)...no interference across units
-]
+3. Mahalanobis distance:&lt;br&gt;
+`\((X_{i} - X_{j})' \Sigma_{X}^{-1} (X_{i} - X_{j})\)`
 
 ---
-# Example of "Potential Outcomes"
+# Animation for matching
 
-.pull-left[
-![:scale 420px](pics/EmoryPicture.jpg)
-
-`\(Y_{1}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;75,000
-
-]
-
-.pull-right[
-![:scale 370px](pics/UNTPicture.jpg)
-
-`\(Y_{0}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;60,000
-]
-
-
----
-# Example of "Potential Outcomes"
-.pull-left[
-![:scale 420px](pics/EmoryPicture.jpg)
-
-`\(Y_{1}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;75,000
-
-]
-
-.pull-right[
-![:scale 370px](pics/UNTPicture.jpg)
-
-`\(Y_{0}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;60,000
-]
-
-
-Earnings due to Emory = `\(Y_{1}-Y_{0}\)` = &lt;span&gt;&amp;#36;&lt;/span&gt;15,000
-
----
-# Example of "Potential Outcomes"
-
-.pull-left[
-![:scale 420px](pics/EmoryPicture.jpg)
-
-`\(Y_{1}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;75,000
-
-]
-
-.pull-right[
-![:scale 370px](pics/UNTPicture.jpg)
-
-`\(Y_{0}\)`= ?
-]
-
-
----
-# Example of "Potential Outcomes"
-
-.pull-left[
-![:scale 420px](pics/EmoryPicture.jpg)
-
-`\(Y_{1}\)`= &lt;span&gt;&amp;#36;&lt;/span&gt;75,000
-
-]
-
-.pull-right[
-![:scale 370px](pics/UNTPicture.jpg)
-
-`\(Y_{0}\)`= ?
-]
-
-
-Earnings due to Emory = `\(Y_{1}-Y_{0}\)` = ?
-
----
-# Do we ever observe the potential outcomes?
 
 .center[
-  ![:scale 700px](https://media.giphy.com/media/zZeCRfPyXi9UI/giphy.gif)
+  ![:scale 900px](pics/match_animate.gif)
+]
+
+---
+# Matching: Defining "nearest"
+
+- But are observations really the same in each group?
+- Potential for "matching discrepancies" to introduce bias in estimates
+
+
+--
+
+- "Bias correction" based on `$$\hat{\mu}(x_{i}) - \hat{\mu}(x_{j(i)})$$` (i.e., difference in fitted values from regression of `\(y\)` on `\(x\)`, with the difference between observed `\(Y_{1i}\)` and imputed `\(Y_{0i}\)`)
+
+---
+# Weighting
+
+1. Estimate propensity score `ps &lt;- glm(D~X, family=binomial, data)`, denoted `\(\hat{\pi}(X_{i})\)`
+2. Weight by inverse of propensity score&lt;br&gt;
+.center[
+`\(\hat{\mu}_{1} = \frac{ \sum_{i=1}^{N} \frac{Y_{i} D_{i}}{\hat{\pi}(X_{i})} }{ \sum_{i=1}^{N} \frac{D_{i}}{\hat{\pi}(X_{i})} }\)` and 
+`\(\hat{\mu}_{0} = \frac{ \sum_{i=1}^{N} \frac{Y_{i} (1-D_{i})}{1-\hat{\pi}(X_{i})} }{ \sum_{i=1}^{N} \frac{1-D_{i}}{1-\hat{\pi}(X_{i})} }\)`
+]
+3. Form "inverse-propensity weighted" ATE:&lt;br&gt;
+.center[
+`\(\hat{\delta}^{IPW} = \hat{\mu}_{1} - \hat{\mu}_{0}\)`
+]
+
+---
+# Regression
+1. Regress `\(Y_{i}\)` on `\(X_{i}\)` among `\(D_{i}=1\)` to form `\(\hat{\mu}_{1}(X_{i})\)`
+2. Regress `\(Y_{i}\)` on `\(X_{i}\)` among `\(D_{i}=0\)` to form `\(\hat{\mu}_{0}(X_{i})\)`
+3. Form difference in predictions:&lt;br&gt;
+.center[
+`$$\hat{\delta}^{reg} = \frac{1}{N} \sum_{i=1}^{N} \left(\hat{\mu}_{1}(X_{i}) - \hat{\mu}_{0}(X_{i})\right)$$`
+]
+
+---
+# Regression
+
+Or estimate in one step, 
+.center[
+`$$Y_{i} = \delta D_{i} + \beta X_{i} + D_{i} \times \left(X_{i} - \bar{X}\right) \gamma + \varepsilon_{i}$$`
 ]
 
 --
-Without a time machine...not possible to get *individual* effects.
+
+- Note the `\((X_{i} - \bar{X})\)`. What does this do?
 
 ---
-# Fundamental Problem of Causal Inference
-
-- We don't observe the counterfactual outcome...what would have happened if a treated unit was actually untreated.
-
-- *ALL* attempts at causal inference represent some attempt at estimating the counterfactual outcome. We need an estimate for `\(Y_{0}\)` among those that were treated, and vice versa for `\(Y_{1}\)`.
+# Animation for regression
 
 
----
-class: inverse, center, middle
-name: ate
-
-# Average Treatment Effects
-
-&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+.center[
+  ![:scale 900px](pics/reg_animate.gif)
+]
 
 
 ---
-# Different treatment effects
+# Simulated data
+Now let's do some matching, re-weighting, and regression with simulated data:
 
-Tend to focus on **averages**&lt;sup&gt;1&lt;/sup&gt;:
-
-- **ATE**: `\(\delta_{ATE} = E[ Y_{1} - Y_{0}]\)`
-
-- **ATT**: `\(\delta_{ATT} = E[ Y_{1} - Y_{0} | D=1]\)`
-
-- **ATU**: `\(\delta_{ATU} = E[ Y_{1} - Y_{0} | D=0]\)`
-
-
-.footnote[&lt;sup&gt;1&lt;/sup&gt; or similar measures such as medians or quantiles]
-
----
-# Average Treatment Effects
-
-- **Estimand**: `$$\delta_{ATE} = E[Y_{1} - Y_{0}] = E[Y | D=1] - E[Y | D=0]$$`
-
-- **Estimate**: `$$\hat{\delta}_{ATE} = \frac{1}{N_{1}} \sum_{D_{i}=1} Y_{i} - \frac{1}{N_{0}} \sum_{D_{i}=0} Y_{i},$$` where `\(N_{1}\)` is number of treated and `\(N_{0}\)` is number untreated (control)
-
-- With random assignment and equal groups, inference/hypothesis testing with standard two-sample t-test
-
-
-&lt;!-- New Section --&gt;
----
-class: inverse, center, middle
-name: selection
-
-# Selection Bias
-
-&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
-
+```r
+n &lt;- 5000
+select.dat &lt;- tibble(
+  x = runif(n, 0, 1),
+  z = rnorm(n, 0, 1),
+  w = (x&gt;0.65),
+  y = -2.5 + 4*w + 1.5*x + rnorm(n,0,1),
+  w_alt = ( x + z &gt; 0.35),
+  y_alt = -2.5 + 4*w_alt + 1.5*x + 2.25*z + rnorm(n,0,1)
+)
+```
 
 ---
-# Selection bias
+# Simulation: nearest neighbor matching
 
-- Assume (for simplicity) constant effects, `\(Y_{1i}=Y_{0i} + \delta\)`
+```r
+nn.est1 &lt;- Matching::Match(Y=select.dat$y,
+                            Tr=select.dat$w,
+                            X=select.dat$x,
+                            M=1,
+                            Weight=1,
+                            estimand="ATE")
+summary(nn.est1)
+```
 
-- Since we don't observe `\(Y_{0}\)` and `\(Y_{1}\)`, we have to use the observed outcomes, `\(Y_{i}\)`
-
-`$$\begin{align}
-E[Y_{i} | D_{i}=1] &amp;- E[Y_{i} | D_{i}=0] \\
-=&amp; E[Y_{1i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \\
-=&amp; \delta + E[Y_{0i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \\
-=&amp; \text{ATE } + \text{ Selection Bias}
-\end{align}$$`
-
----
-# Selection bias
-
-- Selection bias means `\(E[Y_{0i} | D_{i}=1] - E[Y_{0i} | D_{i}=0] \neq 0\)`
-
-- In words, the potential outcome without treatment, `\(Y_{0i}\)`, is different between those that ultimately did and did not receive treatment.
-
-- e.g., treated group was going to be better on average even without treatment (higher wages, healthier, etc.)
-
----
-# Selection bias
-
-- How to "remove" selection bias?
-
-- How about random assignment?
-
-- In this case, treatment assignment doesn't tell us anything about `\(Y_{0i}\)`
-
-`$$E[Y_{0i}|D_{i}=1] = E[Y_{0i}|D_{i}=0],$$` such that `$$E[Y_{i}|D_{i}=1] - E[Y_{i} | D_{i}=0] = \delta_{ATE} = \delta_{ATT} = \delta_{ATU}$$`
-
+```
+## 
+## Estimate...  3.8785 
+## AI SE......  0.53145 
+## T-stat.....  7.298 
+## p.val......  2.9199e-13 
+## 
+## Original number of observations..............  5000 
+## Original number of treated obs...............  1731 
+## Matched number of observations...............  5000 
+## Matched number of observations  (unweighted).  5013
+```
 
 ---
-# Selection bias
+# Simulation: nearest neighbor matching 
 
-- Without random assignment, there's a high probability that `$$E[Y_{0i}|D_{i}=1] \neq E[Y_{0i}|D_{i}=0]$$`
+```r
+nn.est2 &lt;- Matching::Match(Y=select.dat$y,
+                            Tr=select.dat$w,
+                            X=select.dat$x,
+                            M=1,
+*                           Weight=2,
+                            estimand="ATE")
+summary(nn.est2)
+```
 
-- i.e., outcomes without treatment are different for the treated group
+```
+## 
+## Estimate...  3.8785 
+## AI SE......  0.53145 
+## T-stat.....  7.298 
+## p.val......  2.9199e-13 
+## 
+## Original number of observations..............  5000 
+## Original number of treated obs...............  1731 
+## Matched number of observations...............  5000 
+## Matched number of observations  (unweighted).  5013
+```
 
 
 ---
-# Omitted variables bias
+# Simulation: regression
 
-- In a regression setting, selection bias is the same problem as omitted variables bias (OVB)
+```r
+reg1.dat &lt;- select.dat %&gt;% filter(w==1)
+reg1 &lt;- lm(y ~ x, data=reg1.dat)
 
-- Quick review: Goal of OLS is to find `\(\hat{\beta}\)` to "best fit" the linear equation `\(y_{i} = \alpha + x_{i} \beta + \epsilon_{i}\)`
+reg0.dat &lt;- select.dat %&gt;% filter(w==0)
+reg0 &lt;- lm(y ~ x, data=reg0.dat)
+pred1 &lt;- predict(reg1,new=select.dat)
+pred0 &lt;- predict(reg0,new=select.dat)
+mean(pred1-pred0)
+```
 
----
-# Regression review
-
-`$$\begin{align}
-\min_{\beta} &amp; \sum_{i=1}^{N} \left(y_{i} - \alpha - x_{i} \beta\right)^{2}  = \min_{\beta} \sum_{i=1}^{N} \left(y_{i} - (\bar{y} - \bar{x}\beta) - x_{i} \beta\right)^{2}\\
-0 &amp;= \sum_{i=1}^{N} \left(y_{i} - \bar{y} - (x_{i} - \bar{x})\hat{\beta} \right)(x_{i} - \bar{x}) \\
-0 &amp;= \sum_{i=1}^{N} (y_{i} - \bar{y})(x_{i} - \bar{x}) - \hat{\beta} \sum_{i=1}^{N}(x_{i} - \bar{x})^{2} \\
-\hat{\beta} &amp;= \frac{\sum_{i=1}^{N} (y_{i} - \bar{y})(x_{i} - \bar{x})}{\sum_{i=1}^{N} (x_{i} - \bar{x})^{2}} = \frac{Cov(y,x)}{Var(x)}
-\end{align}$$`
-
----
-# Omitted variables bias
-
-- Interested in estimate of the effect of schooling on wages
-
-`$$Y_{i} = \alpha + \beta s_{i} + \gamma A_{i} + \epsilon_{i}$$`
-
-- But we don't observe ability, `\(A_{i}\)`, so we estimate
-
-`$$Y_{i} = \alpha + \beta s_{i} + u_{i}$$`
-
-- What is our estimate of `\(\beta\)` from this regression?
-
----
-# Omitted variables bias
-
-`$$\begin{align}
-\hat{\beta} &amp;= \frac{Cov(Y_{i}, s_{i})}{Var(s_{i})} \\
- &amp;= \frac{Cov(\alpha + \beta s_{i} + \gamma A_{i} + \epsilon_{i}, s_{i})}{Var(s_{i})} \\
- &amp;= \frac{\beta Cov(s_{i}, s_{i}) + \gamma Cov(A_{i},s_{i}) + Cov(\epsilon_{i}, s_{i})}{Var(s_{i})}\\
- &amp;= \beta \frac{Var(s_{i})}{Var(s_{i})} + \gamma \frac{Cov(A_{i},s_{i})}{Var(s_{i})} + 0\\
- &amp;= \beta + \gamma \times \theta_{as}
- \end{align}$$`
-
+```
+## [1] 4.126236
+```
 
 
 ---
-# Removing selection bias without RCT
+# Violation of selection on observables
+.pull-left[
+&lt;u&gt;NN Matching&lt;/u&gt;
 
-- The field of causal inference is all about different strategies to remove selection bias
+```r
+nn.est3 &lt;- Matching::Match(Y=select.dat$y_alt,
+                            Tr=select.dat$w_alt,
+                            X=select.dat$x,
+                            M=1,
+                            Weight=2,
+                            estimand="ATE")
+summary(nn.est3)
+```
 
-- The first strategy (really, assumption) in this class: **selection on observables** or **conditional indpendence**
+```
+## 
+## Estimate...  7.6502 
+## AI SE......  0.053248 
+## T-stat.....  143.67 
+## p.val......  &lt; 2.22e-16 
+## 
+## Original number of observations..............  5000 
+## Original number of treated obs...............  2756 
+## Matched number of observations...............  5000 
+## Matched number of observations  (unweighted).  22555
+```
+]
 
----
-# Intuition
+.pull-right[
+&lt;u&gt;Regression&lt;/u&gt;
 
-- Example: Does having health insurance, `\(D_{i}=1\)`, improve your health relative to someone without health insurance, `\(D_{i}=0\)`?
+```r
+reg1.dat &lt;- select.dat %&gt;% filter(w_alt==1)
+reg1 &lt;- lm(y_alt ~ x, data=reg1.dat)
 
-- `\(Y_{1i}\)` denotes health with insurance, and `\(Y_{0i}\)` health without insurance (these are **potential** outcomes)
+reg0.dat &lt;- select.dat %&gt;% filter(w_alt==0)
+reg0 &lt;- lm(y_alt ~ x, data=reg0.dat)
+pred1_alt &lt;- predict(reg1,new=select.dat)
+pred0_alt &lt;- predict(reg0,new=select.dat)
+mean(pred1_alt-pred0_alt)
+```
 
-- In raw data, `\([Y_{i} | D_{i}=1] &gt; E[Y_{i} | D_{i}=0]\)`, but is that causal?
-
----
-# Intuition
-
-Some assumptions:
-
-- `\(Y_{0i}=\alpha + \eta_{i}\)`
-- `\(Y_{1i} - Y_{0i} = \delta\)`
-- There is some set of "controls", `\(x_{i}\)`, such that `\(\eta_{i} = \beta x_{i} + u_{i}\)` and `\(E[u_{i} | x_{i}]=0\)` (conditional independence assumption, or CIA)
-
---
-
-`$$\begin{align}
-Y_{i} &amp;= Y_{1i} \times D_{i} + Y_{0i} \times (1-D_{i}) \\
-&amp;= \delta D_{i} + Y_{0i} D_{i} + Y_{0i} - Y_{0i} D_{i} \\
-&amp;= \delta D_{i} + \alpha + \eta_{i} \\
-&amp;= \delta D_{i} + \alpha + \beta x_{i} + u_{i}
-\end{align}$$`
-
----
-# ATEs versus regression coefficients
-
-- Estimating the regression equation, `$$Y_{i} = \alpha + \delta D_{i} + \beta x_{i} + u_{i}$$` provides a causal estimate of the effect of `\(D_{i}\)` on `\(Y_{i}\)`
-
-- But what does that really mean?
-
----
-# ATEs vs regression coefficients
-
-- *Ceteris paribus* ("with other conditions remaining the same"), a change in `\(D_{i}\)` will lead to a change in `\(Y_{i}\)` in the amount of `\(\hat{\delta}\)`
-
-- But is *ceteris paribus* informative about policy?
-
----
-# ATEs vs regression coefficients
-
-- `\(Y_{1i} = Y_{0i} + \delta_{i} D_{i}\)` (allows for heterogeneous effects)
-
-- `\(Y_{i} = \alpha + \beta D_{i} + \gamma X_{i} + \epsilon_{i}\)`, with `\(Y_{0i}, Y_{1i} \perp\!\!\!\perp D_{i} | X_{i}\)`
-
-- Aronow and Samii, 2016, show that: `$$\hat{\beta} \rightarrow_{p} \frac{E[w_{i} \delta_{i}]}{E[w_{i}]},$$` where `\(w_{i} = (D_{i} - E[D_{i} | X_{i}])^{2}\)`
+```
+## [1] 7.675315
+```
+]
 
 
 ---
-# ATEs vs regression coefficients
+# What covariates to use?
 
-- Simplify to ATT and ATU
-- `\(Y_{1i} = Y_{0i} + \delta_{ATT} D_{i} + \delta_{ATU} (1-D_{i})\)` 
-- `\(Y_{i} = \alpha + \beta D_{i} + \gamma X_{i} + \epsilon_{i}\)`, with `\(Y_{0i}, Y_{1i} \perp\!\!\!\perp D_{i} | X_{i}\)`
+- There are such things as "bad controls"
+- We want to avoid control variables that are:
 
 
 --
 
-
-`$$\begin{align}
-\beta = &amp; \frac{P(D_{i}=1) \times \pi (X_{i} | D_{i}=1) \times (1- \pi (X_{i} | D_{i}=1))}{\sum_{j=0,1} P(D_{i}=j) \times \pi (X_{i} | D_{i}=j) \times (1- \pi (X_{i} | D_{i}=j))} \delta_{ATU} \\
-&amp; + \frac{P(D_{i}=0) \times \pi (X_{i} | D_{i}=0) \times (1- \pi (X_{i} | D_{i}=0))}{\sum_{j=0,1} P(D_{i}=j) \times \pi (X_{i} | D_{i}=j) \times (1- \pi (X_{i} | D_{i}=j))} \delta_{ATT}
-\end{align}$$`
-
-
----
-# ATEs vs regression coefficients
-
-What does this mean?
-
-- OLS puts more weight on observations with treatment `\(D_{i}\)` "unexplained" by `\(X_{i}\)`
-
-- "Reverse" weighting such that the proportion of treated units are used to weight the ATU while the proportion of untreated units enter the weights of the ATT
-
-- This is *an* average effect, but probably not the average we want
+- Outcomes of the treatment
+- Also endogenous (more generally)
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
@@ -479,6 +418,19 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
     deleted = true;
   });
 })();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
 (function() {
   "use strict"
   // Replace <script> tags in slides area to make them executable
