@@ -18,10 +18,18 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
+.title[
 # Module 2: Demand for Cigarettes and Instrumental Variables
+]
+.subtitle[
 ## Part 3: Application of IV to Demand Estimation
+]
+.author[
 ### Ian McCarthy | Emory University
+]
+.date[
 ### Econ 470 &amp; HLTH 470
+]
 
 ---
 
@@ -220,26 +228,6 @@ The National Bureau of Economic Researh (NBER) has a great resource [here](https
 2. What are the main IV assumptions (and what do they mean)?
 
 3. How do we test for those assumptions?
-
----
-# Review of IV and Homework 3 in R
-
-Some coding pointers to keep in mind:
-
-- Function for extracting top observations, `top_n` (negative values to look from the bottom up)
-- Syntax for `ivreg`, part of `ivpack`
-- Using `stargazer` for regression output
-
----
-# Other points from weekly surveys
-
-- Examples of IV in real life
-  - Month of birth
-  - Vietnam lottery
-  - Medicaid lottery in Oregon
-  
-- Problem with compliers
-- Is a non-complier just in the control group?
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
@@ -289,6 +277,19 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
     deleted = true;
   });
 })();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
 (function() {
   "use strict"
   // Replace <script> tags in slides area to make them executable
