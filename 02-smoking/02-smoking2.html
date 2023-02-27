@@ -18,10 +18,18 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
+.title[
 # Module 2: Demand for Cigarettes and Instrumental Variables
+]
+.subtitle[
 ## Part 2: Instrumental Variables
+]
+.author[
 ### Ian McCarthy | Emory University
+]
+.date[
 ### Econ 470 &amp; HLTH 470
+]
 
 ---
 
@@ -190,6 +198,16 @@ But in practice, *DON'T* do this in two steps. Why?
 
 Because standard errors are wrong...not accounting for noise in prediction, `\(\hat{D}_{i}\)`. The appropriate fix is built into most modern stats programs.
 
+&lt;!-- New Section --&gt;
+---
+class: inverse, center, middle
+name: iv_assumptions
+
+# Formal IV Assumptions
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
 
 ---
 # Key IV assumptions
@@ -203,6 +221,105 @@ Because standard errors are wrong...not accounting for noise in prediction, `\(\
 &lt;br&gt;
 
 Assumptions 1 and 2 sometimes grouped into an *only through* condition.
+
+
+---
+# Exclusion
+
+Conley et al (2010) and "plausible exogeneity", union of confidence intervals approach
+
+- Suppose extent of violation is known in `\(y_{i} = \beta x_{i} + \gamma z_{i} + \varepsilon_{i}\)`, so that `\(\gamma = \gamma_{0}\)`
+- IV/TSLS applied to `\(y_{i} - \gamma_{0}z_{i} = \beta x_{i} + \varepsilon_{i}\)` works
+- With `\(\gamma_{0}\)` unknown...do this a bunch of times!
+    - Pick `\(\gamma=\gamma^{b}\)` for `\(b=1,...,B\)`
+    - Obtain `\((1-\alpha)\)` % confidence interval for `\(\beta\)`, denoted `\(CI^{b}(1-\alpha)\)`
+    - Compute final CI as the union of all `\(CI^{b}\)`
+
+---
+# Exclusion
+
+Kippersluis and Rietveld (2018), "Beyond Plausibly Exogenous"
+- "zero-first-stage" test
+- Focus on subsample for which your instrument is not correlated with the endogenous variable of interest
+    1. Regress the outcome on all covariates and the instruments among this subsample
+    2. Coefficient on the instruments captures any potential direct effect of the instruments on the outcome (since the correlation with the endogenous variable is 0 by assumption). 
+
+
+---
+# Validity
+
+Just says that your instrument is correlated with the endogenous variable, but what about the **strength** of the correlation?
+
+.center[
+ ![](https://media.giphy.com/media/3oFzlXvco5Wt2gnMcg/giphy.gif)
+]
+
+---
+# Why we care about instrument strength
+
+Recall our schooling and wages equation, `$$y = \beta S + \epsilon.$$` Bias in IV can be represented as:
+
+`$$Bias_{IV} \approx \frac{Cov(S, \epsilon)}{V(S)} \frac{1}{F+1} = Bias_{OLS} \frac{1}{F+1}$$`
+
+- Bias in IV may be close to OLS, depending on instrument strength
+- **Bigger problem:** Bias could be bigger than OLS if exclusion restriction not *fully* satisfied
+
+
+---
+# Testing strength of instruments
+
+**Single endogenous variable**
+- Stock &amp; Yogo (2005) test based on first-stage F-stat (homoskedasticity only)
+    - Critical values in tables, based on number of instruments
+    - Rule-of-thumb of 10 with single instrument (higher with more instruments)
+    - Lee et al (2022): With first-stage F-stat of 10, standard "95% confidence interval" for second stage is really an 85% confidence interval
+    - Over-reliance on "rules of thumb", as seen in [Anders and Kasy (2019)](https://www.aeaweb.org/articles?id=10.1257/aer.20180310)
+
+
+---
+# Testing strength of instruments
+
+**Single endogenous variable**
+- Stock &amp; Yogo (2005) test based on first-stage F-stat (homoskedasticity only)
+- Kleibergen &amp; Paap (2007) Wald statistic
+- Effective F-statistic from Olea &amp; Pflueger (2013)
+
+
+---
+# Testing strength of instruments: First-stage
+
+.pull-left[
+**Single endogenous variable**
+1. Homoskedasticity
+    - Stock &amp; Yogo, effective F-stat
+2. Heteroskedasticity
+    - Effective F-stat
+]
+
+.pull-left[
+**Many endogenous variables**
+1. Homoskedasticity
+    - Stock &amp; Yogo with Cragg &amp; Donald statistic, Sanderson &amp; Windmeijer (2016), effective F-stat
+2. Heteroskedasticity
+    - Kleibergen &amp; Papp Wald is robust analog of Cragg &amp; Donald statistic, effective F-stat
+]
+
+
+---
+# Making sense of all of this...
+
+- Test first-stage using effective F-stat (inference is harder and beyond this class)
+- Many endogenous variables problematic because strength of instruments for one variable need not imply strength of instruments for others
+
+
+&lt;!-- New Section --&gt;
+---
+class: inverse, center, middle
+name: iv_practice
+
+# IV with Simulated Data
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
 
 
 ---
@@ -371,92 +488,60 @@ summary(step2)
 ```
 
 
+&lt;!-- New Section --&gt;
 ---
-# Do we need IV?
+class: inverse, center, middle
+name: interpretation
 
-- Let's run an "augmented regression" to see if our OLS results are sufficiently different than IV
+# Interpretation
 
-
-```r
-d.iv &lt;- lm(d ~ z, data=iv.dat)
-d.resid &lt;- residuals(d.iv)
-haus.test &lt;- lm(y ~ d + d.resid, data=iv.dat)
-summary(haus.test)
-```
-
-```
-## 
-## Call:
-## lm(formula = y ~ d + d.resid, data = iv.dat)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -3.2972 -0.6308 -0.0150  0.6771  3.6037 
-## 
-## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  2.45751    0.02564   95.83   &lt;2e-16 ***
-## dTRUE        5.35060    0.04686  114.19   &lt;2e-16 ***
-## d.resid      1.25628    0.05830   21.55   &lt;2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 0.9826 on 4997 degrees of freedom
-## Multiple R-squared:  0.908,	Adjusted R-squared:  0.908 
-## F-statistic: 2.466e+04 on 2 and 4997 DF,  p-value: &lt; 2.2e-16
-```
-
-- Test for significance of `d.resid` suggests OLS is inconsistent in this case
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
 
 
 ---
-# Testing exclusion
+# Heterogenous TEs
 
-- Exclusion restriction says that your instrument does not directly affect your outcome
-- Potential testing ideas:
-  - "zero-first-stage" (subsample on which you know the instrument does not affect the endogenous variable)
-  - augmented regression of reduced-form effect with subset of instruments (overidentified models only)
-
----
-# Testing exogeneity
-
-- Only available in over-identified models
-- Sargan or Hansen's J test (null hypothesis is that instruments are correlated with residuals)
+- In constant treatment effects, `\(Y_{i}(1) - Y_{i}(0) = \delta_{i} = \delta, \text{ } \forall i\)`
+- Heterogeneous effects, `\(\delta_{i} \neq \delta\)`
+- With IV, what parameter did we just estimate? Need **monotonicity** assumption to answer this
 
 
 ---
-# Testing strength of instruments
+# Monotonicity
 
-.pull-left[
-**Single endogenous variable**
-- F-test of instruments (rule of thumb critical value of 10)
-- Partial `\(R^2\)`
-]
+Assumption: Denote the effect of our instrument on treatment by `\(\pi_{1i}\)`. Monotonicity states that `\(\pi_{1i} \geq 0\)` or `\(\pi_{1i} \leq 0,  \text{ } \forall i\)`.
 
-.pull-right[
-**Many endogenous variables**
-- More complicated
-]
-
----
-# Why we care about instrument strength
-
-Recall our schooling and wages equation, `$$y = \beta S + \epsilon$$`. Bias in IV can be represented as:
-
-`$$Bias_{IV} \approx \frac{Cov(S, \epsilon)}{V(S)} \frac{1}{F+1} = Bias_{OLS} \frac{1}{F+1}$$`
-
-- Bias in IV may be close to OLS, depending on instrument strength
-- **Bigger problem:** Bias could be bigger than OLS if exclusion restriction not *fully* satisfied
-- Over-reliance on "rules of thumb", as seen in [Anders and Kasy (2019)](https://www.aeaweb.org/articles?id=10.1257/aer.20180310)
-
+- Allows for `\(\pi_{1i}=0\)` (no effect on treatment for some people)
+- All those affected by the instrument are affected in the same "direction"
+- With heterogeneous ATE and monotonicity assumption, IV provides a "Local Average Treatment Effect" (LATE)
 
 ---
 # LATE and IV Interpretation
 
-- With monotonicity assumption (all those affected by the instrument are affected in the same "direction")
-- In the face of **heterogeneous treatment effects**, IV provides a "Local Average Treatment Effect"
-- LATE: Effect of treatment among those affected by the instrument (compliers only)
-- Why does this matter? Let's discuss Medicaid expansion in Oregon
+- LATE is the effect of treatment among those affected by the instrument (compliers only).
+- Recall original Wald estimator:
+
+`$$\delta_{IV} = \frac{E[Y_{i} | Z_{i}=1] - E[Y_{i} | Z_{i}=0]}{E[D_{i} | Z_{i}=1] - E[D_{i} | Z_{i}=0]}=E[Y_{i}(1) - Y_{i}(0) | \text{complier}]$$`
+
+- Practically, monotonicity assumes there are no defiers and restricts us to learning only about compliers
+
+---
+# Is LATE meaningful?
+
+- Learn about average treatment effect for compliers
+- Different estimates for different compliers
+    - IV based on merit scholarships
+    - IV based on financial aid
+    - Same compliers? Probably not
+
+---
+# LATE with defiers
+
+- In presence of defiers, IV estimates a weighted difference between effect on compliers and defiers (in general)
+- LATE can be restored if subgroup of compliers accounts for the same percentage as defiers and has same LATE
+- Offsetting behavior of compliers and defiers, so that remaining compliers dictate LATE
+
+
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
@@ -507,6 +592,19 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
     deleted = true;
   });
 })();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
 (function() {
   "use strict"
   // Replace <script> tags in slides area to make them executable
