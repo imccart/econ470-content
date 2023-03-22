@@ -18,10 +18,18 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
+.title[
 # Module 3: Medicare Advantage Quality and Regression Discontinuity
+]
+.subtitle[
 ## Part 2: Regression Discontinuity
+]
+.author[
 ### Ian McCarthy | Emory University
+]
+.date[
 ### Econ 470 &amp; HLTH 470
+]
 
 ---
 
@@ -46,16 +54,14 @@ class: center, middle, inverse, title-slide
 
 
 
-# Intuition
-Key intuition from RD:&lt;br&gt;
+# Motivation
 
---
-&lt;br&gt;
+- Basic idea: Observations are &lt;b&gt;identical&lt;/b&gt; just above/below threshold
+- Some motivation from [Causal Inference: The Mixtape](https://mixtape.scunning.com/06-regression_discontinuity)
 
-Observations are &lt;b&gt;identical&lt;/b&gt; just above/below threshold
 
 ---
-# Intuition
+# Motivation
 Highly relevant in "rule-based" world...
 - School eligibility based on age cutoffs
 - Program participation based on discrete income thresholds
@@ -154,16 +160,23 @@ name: rd_practice
 ---
 # RDs "in the wild"
 Most RD estimates follow a similar set of steps:
-1. Investigate the running variable and show a jump at the discontinuity
-2. Show clear graphical evidence of a change around the discontinuity
-3. Overlay regression specification
-4. Explore sensitivity to bandwidths and orders of the polynomial
-5. Conduct similar analyses with baseline covariates as outcomes
-6. Explore sensitivity of results to inclusion of baseline covariates
+1. Show clear graphical evidence of a change around the discontinuity (bin scatter)
+2. Balance above/below threshold (use baseline covariates as outcomes)
+3. Manipulation tests
+4. RD estimates
+5. Sensitivity and robustness:
+    - Bandwidths
+    - Order of polynomial
+    - Inclusion of covariates
 
 
 ---
-# Initial graphical evidence
+# 1. Graphical evidence
+
+
+---
+class: clear
+
 Before presenting RD estimates, **any** good RD approach first highlights the discontinuity with a simple graph. We can do so by plotting the average outcomes within bins of the forcing variable (i.e., binned averages), `$$\bar{Y}_{k} = \frac{1}{N_{k}}\sum_{i=1}^{N} Y_{i} \times 1(b_{k} &lt; X_{i} \leq b_{k+1}).$$`&lt;br&gt;
 
 --
@@ -210,36 +223,58 @@ plot.bin &lt;- bin.avg %&gt;% ggplot(aes(x=rdplot_mean_x,y=rdplot_mean_y)) +
 
 
 ---
-# Kernels?
-Some RD estimates talk about "kernel weighting" to assign more weight to observations closer to the threshold and less weight to observations further from the threshold.
-
----
-# Kernels
-`$$\hat{\mu}_{+}(x) = \frac{\sum_{i: X_{i}&lt;c} Y_{i} \times K \left(\frac{X_{i} -x}{h} \right)}{\sum_{i: X_{i}&lt;c} K \left(\frac{X_{i} -x}{h} \right)},$$` and `$$\hat{\mu}_{-}(x) = \frac{\sum_{i: X_{i}\geq c} Y_{i} \times K \left(\frac{X_{i} -x}{h} \right)}{\sum_{i: X_{i}\geq c} K \left(\frac{X_{i} -x}{h} \right)},$$`
-where `\(K(u)\)` is a kernel that assigns weight to observations based on the distance from `\(u\)`. A rectagular kernel is such that `\(K(u)=1/2\)` for `\(u \in (-1,1)\)` and 0 elsewhere. 
-
----
-# Kernels and regression
-- Local linear regression (regression within the pre-specified bandwidth) is a kernel weighted regression with a uniform (or rectangular) kernel. 
-- Could use more complicated kernels for a fully nonparametric approach, but these don't work well around the RD cutoff values.
-- Polynomial 
-
----
-# Some practical concerns
-- Bin size for plots
-- Selecting bandwidth, `\(h\)`
-- Check for sorting around threshold (e.g., gaming)
-- Covariate balance (love plots around threshold)
-- Should we control for other covariates?
-- Sensitivity to polynomial specification
-
----
 # Selecting "bin" width
 1. Dummy variables: Create dummies for each bin, regress the outcome on the set of all dummies and form r-square `\(R^{2}_{r}\)`, repeat with double the number of bins and find r-square value `\(R^{2}_{u}\)`, form F-stat, `\(\frac{R^{2}_{u}-R^{2}_{r}}{1-R^{2}_{u}}\times \frac{n-K-1}{K}\)`.
 
 2. Interaction terms: Include interactions between dummies and the running variable, joint F-test for the interaction terms
 
 If F-test suggests significance, then we have too few bins and need to narrow the bin width.
+
+
+---
+# 2. Balance
+
+---
+# Assessing balance
+
+- If RD is an appropriate design, passing the cutoff should **only** affect treatment and outcome of interest
+- How do we test for this?
+    - Covariate balance
+    - Placebo tests of other outcomes (e.g., t-1 outcomes against treatment at time t)
+
+
+
+---
+# 3. Manipulation tests
+
+
+---
+# Manipulation of running variable
+
+- Individuals should not be able to **precisely** manipulate running variable to enter into treatment
+- Sometimes discussed as "bunching"
+- Test for differences in density to left and right of cutoffs (`rddensity` in Stata and R)
+- Permutation tests proposed in Ganong and Jager (2017)
+
+---
+# What if bunching exists?
+
+- Gerard, Rokkanen, and Rothe (2020) suggest partial identification allowing for bunching
+- Can also be used as a robustness check
+- `rdbounds` in Stata and R
+- Assumption: bunching only moves people in one direction
+
+
+---
+# 4. RD Estimation
+
+---
+# Baseline RD estimates
+
+Start with the "default" options
+- Local linear regression
+- Optimal bandwidth
+- Uniform kernel
 
 
 ---
@@ -295,23 +330,54 @@ rd &lt;- lm(Y~x_dev + W, data=rd.dat3)
 - Standard linear regression with same slopes: 1.68
 - RD (linear with same slopes): 1.58
 
----
-# Manipulation of running variable
-
-- What if firms or individuals can control whether they fall just above or below the threshold?
-- Test for this by inspecting the PDF of the running variable
-- Jump in density at threshold suggests manipulation
-
 
 ---
-# Covariate balance
+# RD with built-in commands
+.pull-left[
 
-- If RD is an appropriate design, units should be very similar above and below threshold
-- How do we test for this?
+```
+## Sharp RD estimates using local polynomial regression.
+## 
+## Number of Obs.                 1000
+## BW type                       mserd
+## Kernel                   Triangular
+## VCE method                       NN
+## 
+## Number of Obs.                  482          518
+## Eff. Number of Obs.             146          187
+## Order est. (p)                    1            1
+## Order bias  (q)                   2            2
+## BW est. (h)                   0.330        0.330
+## BW bias (b)                   0.476        0.476
+## rho (h/b)                     0.693        0.693
+## Unique Obs.                     482          518
+## 
+## =============================================================================
+##         Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       
+## =============================================================================
+##   Conventional     1.593     0.108    14.732     0.000     [1.381 , 1.805]     
+##         Robust         -         -    12.530     0.000     [1.351 , 1.852]     
+## =============================================================================
+```
+]
+
+.pull-right[
+Cattaneo et al. (2020) argue:
+- Report conventional point estimate
+- Report robust confidence interval
+]
 
 
---
-- Covariate balance (love plots from Module 1)
+---
+# 5. Robustness and sensitivity
+
+
+---
+# Other options
+
+- Different bandwidths
+- Different kernels or polynomials
+- Role of covariates in RD estimates
 
 
 ---
@@ -323,17 +389,17 @@ rd &lt;- lm(Y~x_dev + W, data=rd.dat3)
 
 For more discussion, see this [World Bank Blog post](https://blogs.worldbank.org/impactevaluations/curves-all-wrong-places-gelman-and-imbens-why-not-use-higher-order-polynomials-rd)
 
-&lt;!-- New Section --&gt;
+
+
 ---
 class: inverse, center, middle
-name: fuzzy_rd
 
-# Fuzzy Regression Discontinuity
+# Fuzzy RD
 
 &lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
 
 ---
-# Fuzzy RD
+# The Idea
 "Fuzzy" just means that assignment isn't guaranteed based on the running variable. For example, maybe students are much more likely to get a scholarship past some threshold SAT score, but it remains possible for students below the threshold to still get the scholarship. 
 
 - Discontinuity reflects a jump in the probability of treatment
@@ -345,8 +411,7 @@ In practice, fuzzy RD is employed as an instrumental variables estimator
 - Difference in outcomes among those above and below the discontinuity divided by the difference in treatment probabilities for those above and below the discontinuity,&lt;br&gt;
 `\(E[Y_{i} | D_{i}=1] - E[Y_{i} | D_{i}=0] = \frac{E[Y_{i} | x_{i}\geq c] - E[Y_{i} | x_{i}&lt; c]}{E[D_{i} | x_{i}\geq c] - E[D_{i} | x_{i}&lt;c]}\)`
 - Indicator for `\(x_{i}\geq c\)` is an instrument for treatment status, `\(D_{i}\)`.
-
-
+- Implemented with `rdrobust` and `fuzzy=t` option
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
@@ -396,6 +461,19 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
     deleted = true;
   });
 })();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
 (function() {
   "use strict"
   // Replace <script> tags in slides area to make them executable
