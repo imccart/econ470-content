@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Module 4: Difference-in-Differences and Effects of Medicaid Expansion</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Ian McCarthy | Emory University" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#E68080"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <script src="libs/kePrint/kePrint.js"></script>
+    <link href="libs/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Module 4: Difference-in-Differences and Effects of Medicaid Expansion
+]
+.subtitle[
+## Part 2: Basics of Fixed Effects and Panel Data
+]
+.author[
+### Ian McCarthy | Emory University
+]
+.date[
+### Econ 470 &amp; HLTH 470
+]
+
+---
+
+class: inverse, center, middle
+name: panel
+
+&lt;!-- Adjust some CSS code for font size and maintain R code font size --&gt;
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+&lt;/style&gt;
+
+
+&lt;!-- Set R options for how code chunks are displayed and load packages --&gt;
+
+
+
+
+# Understanding Panel Data
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Nature of the Data
+
+- Repeated observations of the same units over time (balanced vs unbalanced)
+- Identification due to variation **within unit**
+
+
+--
+**Notation**
+- Unit `\(i=1,...,N\)` over several periods `\(t=1,...,T\)`, which we denote `\(y_{it}\)`
+- Treatment status `\(D_{it}\)`
+- Regression model, &lt;br&gt;
+`\(y_{it} = \delta D_{it} + \gamma_{i} + \gamma_{t} + \epsilon_{it}\)` for `\(t=1,...,T\)` and `\(i=1,...,N\)`
+
+---
+# Benefits of Panel Data
+
+- *May* overcome certain forms of omitted variable bias
+- Allows for unobserved but time-invariant factor, `\(\gamma_{i}\)`, that affects both treatment and outcomes
+
+
+--
+**Still assumes**
+- No time-varying confounders 
+- Past outcomes do not directly affect current outcomes
+- Past outcomes do not affect treatment (reverse causality)
+
+---
+# Some textbook settings
+
+- Unobserved "ability" when studying schooling and wages
+- Unobserved "quality" when studying physicians or hospitals
+
+---
+class: inverse, center, middle
+name: panelreg
+
+# Panel Data and Regression
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Fixed effects and regression
+
+`\(y_{it} = \delta D_{it} + \gamma_{i} + \gamma_{t} + \epsilon_{it}\)` for `\(t=1,...,T\)` and `\(i=1,...,N\)`
+
+
+--
+- Allows correlation between `\(\gamma_{i}\)` and `\(D_{it}\)`
+- Physically estimate `\(\gamma_{i}\)` in some cases via set of dummy variables
+- More generally, "remove" `\(\gamma_{i}\)` via:
+  - "within" estimator
+  - first-difference estimator
+  
+---
+# Within Estimator
+`\(y_{it} = \delta D_{it} + \gamma_{i} + \gamma_{t} + \epsilon_{it}\)` for `\(t=1,...,T\)` and `\(i=1,...,N\)`
+
+
+--
+- Most common approach (default in most statistical software)
+- Equivalent to demeaned model,&lt;br&gt;
+
+`$$y_{it} - \bar{y}_{i} = \delta (D_{it} - \bar{D}_{i}) + (\gamma_{i} - \bar{\gamma}_{i}) + (\gamma_{t} - \bar{\gamma}_{t}) + (\epsilon_{it} - \bar{\epsilon}_{i})$$`
+
+- `\(\gamma_{i} - \bar{\gamma}_{i} = 0\)` since `\(\gamma_{i}\)` is time-invariant
+- Requires *strict exogeneity* assumption (error is uncorrelated with `\(D_{it}\)` for all time periods)
+
+---
+# First-difference
+`\(y_{it} = \delta D_{it} + \gamma_{i} + \gamma_{t} + \epsilon_{it}\)` for `\(t=1,...,T\)` and `\(i=1,...,N\)`
+
+
+--
+- Instead of subtracting the mean, subtract the prior period values&lt;br&gt;
+`\(y_{it} - y_{i,t-1} = \delta(D_{it} - D_{i,t-1}) + (\gamma_{i} - \gamma_{i}) + (\gamma_{t} - \gamma_{t-1}) + (\epsilon_{it} - \epsilon_{i,t-1})\)`
+- Requires exogeneity of `\(\epsilon_{it}\)` and `\(D_{it}\)` only for time `\(t\)` and `\(t-1\)` (weaker assumption than within estimator)
+- Sometimes useful to estimate both FE and FD just as a check
+
+
+---
+# Keep in mind...
+
+- Discussion only applies to linear case or very specific nonlinear models
+- Fixed effects at lower "levels" accommodate fixed effects at higher levels (e.g., FEs for hospital combine to form FEs for zip code, etc.)
+- Fixed effects can't solve reverse causality
+- Fixed effects don't address unobserved, time-varying confounders
+- Can't estimate effects on time-invariant variables
+- May "absorb" a lot of the variation for variables that don't change much over time
+
+
+---
+class: inverse, center, middle
+name: irl
+
+# Panel Data and Fixed Effects IRL
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Within Estimator (Default) in practice
+
+.pull-left[
+**Stata**&lt;br&gt;
+
+```stata
+ssc install causaldata
+causaldata gapminder.dta, use clear download
+gen lgdp_pc=log(gdppercap)
+tsset country year
+xtreg lifeExp lgdp_pc, fe
+```
+]
+
+.pull-right[
+**R**&lt;br&gt;
+
+```r
+library(fixest)
+library(causaldata)
+reg.dat &lt;- causaldata::gapminder %&gt;%
+  mutate(lgdp_pc=log(gdpPercap))
+feols(lifeExp~lgdp_pc | country, data=reg.dat)
+```
+]
+
+---
+# Within Estimator (Default) in practice
+
+&lt;table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Default FE &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Log GDP per Capita &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9.769 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.702) &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+# Within Estimator (Manually Demean) in practice
+
+.pull-left[
+**Stata**&lt;br&gt;
+
+```stata
+causaldata gapminder.dta, use clear download
+gen lgdp_pc=log(gdppercap)
+foreach x of varlist lifeExp lgdp_pc {
+  egen mean_`x'=mean(`x')
+  egen demean_`x'=`x'-mean_`x'
+}
+reg demean_lifeExp demean_lgdp_pc
+```
+]
+
+.pull-right[
+**R**&lt;br&gt;
+
+```r
+library(causaldata)
+reg.dat &lt;- causaldata::gapminder %&gt;%
+  mutate(lgdp_pc=log(gdpPercap)) %&gt;%
+  group_by(country) %&gt;%
+  mutate(demean_lifeexp=lifeExp - mean(lifeExp, na.rm=TRUE),
+         demean_gdp=lgdp_pc - mean(lgdp_pc, na.rm=TRUE))
+lm(demean_lifeexp~ 0 + demean_gdp, data=reg.dat)
+```
+]
+
+---
+# Within Estimator (Manually Demean) in practice
+&lt;table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Default FE &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Manual FE &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Log GDP per Capita &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9.769 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9.769 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.702) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.701) &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+**Note:** `feols` defaults to clustering at level of FE, `lm` requires our input
+
+---
+# First differencing (default) in practice
+
+.pull-left[
+**Stata**&lt;br&gt;
+
+```stata
+causaldata gapminder.dta, use clear download
+gen lgdp_pc=log(gdppercap)
+reg d.lifeExp d.lgdp_pc, noconstant
+```
+]
+
+.pull-right[
+**R**&lt;br&gt;
+
+```r
+library(plm)
+reg.dat &lt;- causaldata::gapminder %&gt;%
+  mutate(lgdp_pc=log(gdpPercap))
+
+plm(lifeExp ~ 0 + lgdp_pc, model="fd", individual="country", index=c("country","year"), data=reg.dat)
+```
+]
+
+---
+# First differencing (manual) in practice
+
+&lt;table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Default FE &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Manual FE &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Default FD &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Log GDP per Capita &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9.769 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9.769 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5.290 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.702) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.284) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.291) &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+
+---
+# First differencing (manual) in practice
+
+.pull-left[
+**Stata**&lt;br&gt;
+
+```stata
+causaldata gapminder.dta, use clear download
+gen lgdp_pc=log(gdppercap)
+reg d.lifeExp d.lgdp_pc, noconstant
+```
+]
+
+.pull-right[
+**R**&lt;br&gt;
+
+```r
+reg.dat &lt;- causaldata::gapminder %&gt;%
+  mutate(lgdp_pc=log(gdpPercap)) %&gt;%  
+  group_by(country) %&gt;%
+  arrange(country, year) %&gt;%
+  mutate(fd_lifeexp=lifeExp - lag(lifeExp),
+         lgdp_pc=lgdp_pc - lag(lgdp_pc)) %&gt;%
+  na.omit()
+
+lm(fd_lifeexp~ 0 + lgdp_pc , data=reg.dat)
+```
+]
+
+---
+# First differencing (manual) in practice
+
+&lt;table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Default FE &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Manual FE &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Default FD &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Manual FD &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Log GDP per Capita &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9.769 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 9.769 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5.290 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5.290 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.702) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.284) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.291) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.291) &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+# FE and FD with same time period
+
+&lt;table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Default FE &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Default FD &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Manual FD &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Log GDP per Capita &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 8.929 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5.290 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5.290 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.741) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.291) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.291) &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+Don't want to read too much into this, but...
+- Likely strong serial correlation in this case (almost certainly)
+- Mispecified model
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

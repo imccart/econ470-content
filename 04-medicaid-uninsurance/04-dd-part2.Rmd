@@ -1,0 +1,834 @@
+---
+title: "Module 4: Difference-in-Differences and Effects of Medicaid Expansion"
+subtitle: "Part 4: Even More Difference-in-Differences"
+author: Ian McCarthy | Emory University
+date: Econ 470 & HLTH 470
+header-includes: 
+  - \usepackage{graphicx}
+  - \usepackage{amsmath}
+  - \usepackage{mathtools}  
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, custom.css, cols.css] 
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      beforeInit: [macros.js, cols_macro.js]
+knit: pagedown::chrome_print      
+---
+class: inverse, center, middle
+
+<!-- Adjust some CSS code for font size and maintain R code font size -->
+<style type="text/css">
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+</style>
+
+
+<!-- Set R options for how code chunks are displayed and load packages -->
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(knitr)
+knitr::opts_chunk$set(
+  fig.align="center",  
+  fig.height=3, #fig.width=6,
+  # out.width="748px", #out.length="520.75px",
+  dpi=300, #fig.path='Figs/',
+  cache=T,# echo=F, warning=F, message=F
+  warning = FALSE, 
+  message = FALSE, 
+  cache.lazy = FALSE,
+  error=TRUE
+  )
+
+knitr::opts_hooks$set(fig.callout = function(options) {
+  if(options$fig.callout) {
+    options$echo = FALSE
+  }
+  options
+})
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
+               scales, plotly, gganimate, cobalt, stargazer, haven, ggthemes,
+               gifski, magick, fixest, modelsummary, here, xaringanExtra, webshot,
+               DIDmultiplegt)
+set.seed(1234)
+```
+
+```{r xaringan-scribble, echo=FALSE}
+xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
+```
+
+# Problem with TWFE
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+---
+# Problem in an Equation
+
+Consider standard TWFE specification with a single treatment coefficient, $$y_{it} = \alpha + \delta D_{it} + \gamma_{i} + \gamma_{t} + \varepsilon_{it}.$$ We can decompose $\hat{\delta}$ into three things:
+
+$$\hat{\delta}_{twfe} = \text{VW} ATT + \text{VW} PT - \Delta ATT$$
+
+1. A variance-weighted ATT
+2. Violation of parallel trends
+3. Heterogeneous effects over time
+
+
+---
+# Problem with words
+
+- Best case: Variance-weighted ATT
+- Differential timing **alone** can introduce bias because already treated act as controls for later treated groups (when seeking single regression coefficient)
+- Heterogeneity and differential timing introduces "contamination" via negative weights assigned to some underlying 2x2 DDs
+
+---
+# Solution
+
+Only consider "clean" comparisons:
+
+- Separate event study for each treatment group vs never-treated or not-yet-treated
+- Callaway and Sant'Anna (2020)
+- Sun and Abraham (2020)
+- de Chaisemartin and D'Haultfoeuille (2020)
+- Stacking regression: Cengiz et al. (2019)
+- Imputation: Gardner (2021), and Borusyak et al. (2021)
+
+
+---
+# Changing mindset for estimation
+
+1. Define target parameter (e.g., ATT)...this is pretty new as a starting point
+2. Identification
+3. Estimation
+4. Aggregation
+5. Inference
+
+---
+class: inverse, center, middle
+
+# An aside on covariates and DD
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# Incorporating covariates
+
+- "Easy" to do in regression setting, but risks of using outcomes as controls
+- Two general ways:
+    1. Outcome regression (imputation-based)
+    2. Propensity score
+
+---
+# Outcome regression (Heckman et al 1997)
+
+$$\small \hat{\delta}^{reg} = E[Y_{t=1}|D=1] - \left[ E[Y_{t=0}|D=1] + \frac{1}{n^{T}} \sum_{i \in N_{d=1}} \left(\hat{\mu}_{d=0, t=1}(X_{i}) - \hat{\mu}_{d=0, t=0}(X_{i})\right) \right],$$
+
+where $\hat{\mu}_{d,t}$ is the prediction from a regression among the untreated group using baseline covariates.
+
+- Heckman forms prediction as regression of $\Delta Y$ on $X_{i}$ among untreated group, although could also consider separate regressions on levels
+- Conceptually...take observed value among treatment group in post-period, subtract pre-period value and the predicted trend
+
+---
+# IPW (Abadie, 2005)
+
+$$\hat{\delta}^{ipw} = E \left[\frac{D - \hat{p}(D=1|X)}{1-\hat{p}(D=1|X)} \frac{Y_{t=1} - Y_{t=0}}{P(D=1)} \right]$$
+- $Y_{t=1}$ is the observed outcome at time $t=1$, and similarly for $Y_{t=0}$
+- $\hat{p}$ denotes the estimated propensity score from regression of $D$ on $X$ in pre-period
+- Conceptually...upweight change among treated that look a lot like the control group, downweight change among treated that look different than controls
+
+
+---
+# DR (Sant'Anna and Zhou)
+
+$$\scriptsize \hat{\delta}^{dr} = E \left[ \left(\frac{D}{P(D=1)} - \frac{\frac{\hat{p}(X)(1-D)}{1-\hat{p}(X)}}{E\left[\frac{\hat{p}(X)(1-D)}{1-\hat{p}(X)} \right]} \right) \left(E[Y_{t=1}|D=1] - E[Y_{t=0}|D=1] - \Delta \hat{\mu}_{0}(X)\right) \right]$$
+- Notice how this combines Heckman's outcome regression in the second part and Abadie's IPW in the first part
+
+---
+class: inverse, center, middle
+name: newdd
+
+# The "New" DD
+
+---
+# The New DD
+
+I'll organize this into three types of estimators:
+
+1. GT
+2. Stacked
+3. Imputation
+
+
+---
+class: inverse, center, middle
+name: cs
+
+# GT1: Callaway and Sant'Anna
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# CS Estimator (Conceptually)
+
+- "Manually" estimate group-specific treatment effects for each period
+- Each estimate is propensity-score weighted
+- Aggregate the treatment effect estimates (by time, group, or both)
+
+---
+# CS Estimator (More Formally)
+
+Group-specific treatment effects:
+
+$$ATT(g,t) = E[Y_{1,t} - Y_{0,t} | G_{g}=1],$$
+where $G$ denotes all feasible groups or cohorts (e.g., $g=1$ could mean states expanding in 2014, $g=2$ denotes states expanding in 2015, etc.)
+
+
+---
+# CS Estimator (More Formally)
+
+With this $(g,t)$ notation, CS show:
+
+$$\scriptsize ATT(g,t; \tau)^{DR} = E \left[ \left(\frac{G_{g}}{P(G_{g}=1)} - \frac{\frac{\hat{p}_{g}(X)C}{1-\hat{p}_{g}(X)}}{E\left[\frac{\hat{p}_{g}(X)C}{1-\hat{p}_{g}(X)} \right]} \right) \left(E[Y_{t}|G_{g}=1] - E[Y_{g-\tau-1}|G_{g}=1] - \Delta \hat{\mu}_{g,t,\tau}(X)\right) \right]$$
+- $\tau$ denotes time from treatment, such that $Y_{g - \tau - 1}$ denotes the outcome for some reference time period, $t=g - \tau -1$
+- $\Delta \hat{\mu}$ captures the predicted change from an outcome regression
+- $\hat{p}_{g}$ denotes the predicted probability of being in the treatment cohort $g$
+
+
+---
+# CS Estimator (More Formally)
+
+- CS show a similar version of their estimator using a "not-yet-treated" control group rather than a never-treated.
+- Different versions include...
+    - "regression" based: drop the propensity score part
+    - "IPW": drop $\Delta \hat{\mu}$
+- Only time-invariant covariates allowed
+
+---
+# CS Estimator (More Formally)
+
+Finally, aggregate all of the $(g,t)$ treatment effects:
+
+$$\hat{\delta} = \sum_{g \in \mathcal{G}} \sum_{t=2}^{\mathcal{T}} w(g,t) \times ATT(g,t)$$
+
+---
+# CS Estimator (in Practice)
+
+.pull-left[
+**Stata**<br>
+```{stata, eval=FALSE}
+ssc install csdid
+ssc install event_plot
+ssc install drdid
+
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+egen stategroup=group(state)
+drop if expand_ever=="NA"
+replace expand_year="0" if expand_year=="NA"
+destring expand_year, replace
+
+csdid perc_unins, ivar(stategroup) time(year) gvar(expand_year) notyet
+estat event, estore(cs)
+event_plot cs, default_look graph_opt(xtitle("Periods since the event") ytitle("Average causal effect") xlabel(-6(1)4) title("Callaway and Sant'Anna (2020)")) stub_lag(T+#) stub_lead(T-#) together
+```
+]
+
+
+.pull-right[
+**R**<br>
+```{r, echo=TRUE, results='hide'}
+library(tidyverse)
+library(did)
+library(DRDID)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% 
+  filter(!is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year>=2014), 
+         treat=post*expand_ever,
+         expand_year=ifelse(is.na(expand_year),0,expand_year)) %>%
+  filter(!is.na(perc_unins)) %>%
+  group_by(State) %>%
+  mutate(stategroup=cur_group_id()) %>% ungroup()
+
+mod.cs <- att_gt(yname="perc_unins", tname="year", idname="stategroup",
+                 gname="expand_year",
+                 data=reg.dat, panel=TRUE, est_method="dr",
+                 allow_unbalanced_panel=TRUE)
+mod.cs.event <- aggte(mod.cs, type="dynamic")
+```
+]
+
+---
+# CS in Practice
+
+```{r echo=FALSE}
+ggdid(mod.cs.event,
+      legend=FALSE)
+```
+
+
+---
+class: inverse, center, middle
+name: sa
+
+# GT2: Sun and Abraham
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# Sun and Abraham
+
+- Standard event study problems:
+    - coefficient estimates are potentially biased due to treatment/control group construction
+    - i.e., "contamination" of individual $\delta_{\tau}$ from other leads/lags
+- Solution: Estimate fully interacted model
+
+
+--
+$$y_{it} = \gamma_{i} + \gamma_{t} + \sum_{g} \sum_{\tau \neq -1} \delta_{g \tau} \times \text{1}(i \in C_{g}) \times D_{it}^{\tau} + \beta x_{it} + \epsilon_{it}$$
+
+---
+# Sun and Abraham
+
+$$y_{it} = \gamma_{i} + \gamma_{t} + \sum_{g} \sum_{\tau \neq -1} \delta_{g \tau} \times \text{1}(i \in C_{g}) \times D_{it}^{\tau} + \beta x_{it} + \epsilon_{it}$$
+
+--
+- $g$ denotes a group and $C_{g}$ the set of individuals in group $g$
+- $\tau$ denotes time periods
+- $D_{it}^{\tau}$ denotes a relative time indicator
+
+
+---
+count: false
+
+# Sun and Abraham
+
+$$y_{it} = \gamma_{i} + \gamma_{t} + \sum_{g} \sum_{\tau \neq -1} \delta_{g \tau} \times \text{1}(i \in C_{g}) \times D_{it}^{\tau} + \beta x_{it} + \epsilon_{it}$$
+
+
+--
+- Intuition: Standard regression with different event study specifications for each treatment group
+- Aggregate $\delta_{g\tau}$ for standard event study coefficients and overall ATT
+
+
+
+---
+# Sun and Abraham in Practice
+
+.pull-left[
+**Stata**<br>
+```{stata, eval=FALSE}
+ssc install eventstudyinteract
+ssc install avar
+ssc install event_plot
+
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+drop if expand_ever=="NA"
+egen stategroup=group(state)
+replace expand_year="." if expand_year=="NA"
+destring expand_year, replace
+gen event_time=year-expand_year
+gen nevertreated=(event_time==.)
+
+forvalues l = 0/4 {
+	gen L`l'event = (event_time==`l')
+}
+forvalues l = 1/2 {
+	gen F`l'event = (event_time==-`l')
+}
+gen F3event=(event_time<=-3)
+eventstudyinteract perc_unins F3event F2event L0event L1event L2event L3event L4event, vce(cluster stategroup) absorb(stategroup year) cohort(expand_year) control_cohort(nevertreated)
+
+event_plot e(b_iw)#e(V_iw), default_look graph_opt(xtitle("Periods since the event") ytitle("Average causal effect") xlabel(-3(1)4)	title("Sun and Abraham (2020)")) stub_lag(L#event) stub_lead(F#event) plottype(scatter) ciplottype(rcap) together
+```
+]
+
+
+.pull-right[
+**R**<br>
+```{r, echo=TRUE, results='hide'}
+library(tidyverse)
+library(modelsummary)
+library(fixest)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% 
+  filter(!is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year>=2014), 
+         treat=post*expand_ever,
+         expand_year = ifelse(expand_ever==FALSE, 10000, expand_year),
+         time_to_treat = ifelse(expand_ever==FALSE, -1, year-expand_year),
+         time_to_treat = ifelse(time_to_treat < -4, -4, time_to_treat))
+
+mod.sa <- feols(perc_unins~sunab(expand_year, time_to_treat) | State + year,
+                  cluster=~State,
+                  data=reg.dat)
+```
+]
+
+---
+# Sun and Abraham in Practice
+
+```{r echo=FALSE}
+iplot(mod.sa,
+      xlab = 'Time to treatment',
+      main = 'SA Event study')
+```
+
+
+
+
+---
+class: inverse, center, middle
+name: ch
+
+# GT3: de Chaisemartin and D'Haultfoeuille (CH)
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# CH
+
+- More general than other approaches
+- Considers "fuzzy" treatment (i.e., non-discrete treatment)
+- Considers fixed effects and first-differencing
+- Allows treatment to turn on and off (not allowed in CS or SA)
+
+
+--
+New paper from Callaway, Goodman-Bacon, and Sant'Anna also looks at DD with continuous treatment
+
+---
+# CH Approach
+
+- Essentially a series of 2x2 comparisons
+- Aggregates up to overall effects
+
+
+---
+# CH in Practice
+
+.pull-left[
+**Stata**<br>
+```{stata, eval=FALSE}
+ssc install did_multiplegt
+ssc install event_plot
+
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+drop if expand_ever=="NA"
+egen stategroup=group(state)
+replace expand_year="." if expand_year=="NA"
+destring expand_year, replace
+gen event_time=year-expand_year
+gen nevertreated=(event_time==.)
+gen treat=(event_time>=0 & event_time!=.)
+
+did_multiplegt perc_unins stategroup year treat, robust_dynamic dynamic(4) placebo(3) breps(100) cluster(stategroup) 
+event_plot e(estimates)#e(variances), default_look graph_opt(xtitle("Periods since the event") ytitle("Average causal effect") ///
+title("de Chaisemartin and D'Haultfoeuille (2020)") xlabel(-3(1)4)) stub_lag(Effect_#) stub_lead(Placebo_#) together
+```
+]
+
+
+.pull-right[
+**R**(not the same as in **Stata**)<br>
+```{r, echo=TRUE, results='hide'}
+library(DIDmultiplegt)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% 
+  filter(!is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         treat=case_when(
+           expand_ever==FALSE ~ 0,
+           expand_ever==TRUE & expand_year<year ~ 0,
+           expand_ever==TRUE & expand_year>=year ~ 1))
+
+mod.ch <- did_multiplegt(df=reg.dat, Y="perc_unins", G="State", T="year", D="treat",
+                         placebo=4, dynamic=5, brep=50, cluster='State', covariance=TRUE, 
+                         parallel=TRUE, average_effect="simple")
+```
+]
+
+---
+# CH in Practice
+
+```{r echo=FALSE}
+library(broom)
+# Create a tidier for "multiplegt" objects
+tidy.did_multiplegt = function(x, level = 0.95) {
+  ests = x[grepl("^placebo_|^effect|^dynamic_", names(x))]
+  ret = data.frame(
+    term      = names(ests),
+    estimate  = as.numeric(ests),
+    std.error = as.numeric(x[grepl("^se_placebo|^se_effect|^se_dynamic", names(x))]),
+    N         = as.numeric(x[grepl("^N_placebo|^N_effect|^N_dynamic", names(x))])
+    ) |>
+    # For CIs we'll assume standard normal distribution
+    within({
+      conf.low  = estimate - std.error*(qnorm(1-(1-level)/2))
+      conf.high = estimate + std.error*(qnorm(1-(1-level)/2))
+      })
+  return(ret)
+}
+
+tidy.mod.ch <- tidy.did_multiplegt(mod.ch)
+
+library(ggplot2)
+theme_set(theme_minimal(base_family = "ArialNarrow")) # Optional
+tidy.mod.ch |>
+  within({
+    term = gsub("^placebo_", "-", term)
+    term = gsub("^effect", "0", term)
+    term = gsub("^dynamic_", "", term)
+    term = as.integer(term)
+    }) |>
+  ggplot(aes(x = term, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_pointrange() +
+  labs(
+    x = "Time to treatment", y = "Effect size", title = "CH Event-study plot"
+    )
+```
+
+---
+# CH in practice
+
+Some barriers to this estimator in practice (at least, as implemented in `R` right now)
+- Relatively slow
+- Not user friendly
+- Odd results
+
+
+
+---
+class: inverse, center, middle
+name: stacked
+
+# Stacked regression
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# Cengiz et al. (2019)
+
+- "Stacked" event studies
+- Estimate event study for every treatment group, using never-treated as controls
+- Aggregate to overall average effects
+
+---
+# Cengiz et al. (2019)
+
+1. Define event window, $t\in [\kappa_{a}, \kappa_{b}]$ (e.g., 3 pre-periods and 5 post-periods, $\kappa_{a}=3$ and $\kappa_{b}=5$)
+2. Split the data into $g=1,...,G$ different "groups", as defined by treatment cohort, each with adoption date denoted by $\omega_{g}$
+    - observations outside of the $[\omega_{g} - \kappa_{a}, \omega_{g} + \kappa_{b}]$ interval are dropped
+3. Append (i.e., stack) each $g$th dataset
+4. Run stacked event study allowing for different set of event study coefficients and fixed effects for every group $g$
+
+$$y_{itg} = \sum_{\tau=-\kappa_{a}}^{\kappa_{b}} \delta_{\tau} \times D_{ig} \times 1(t-\omega_{g} = \tau) + \gamma_{ig} + \gamma_{\tau g} + \varepsilon_{itg}$$
+
+---
+# Cengiz et al. (2019)
+
+- Intuitively: run event study on every cohort, $g$
+- Control units (never treated or very late treated) will be duplicated over cohorts
+- Need to cluster at the unit or unit/cohort level (probably unit level otherwise not accounting for duplication)
+- **Alternative:** Among controls included in multiple cohorts, randomly assign them to one cohort
+
+---
+# Quick comparison
+
+- Allows time-varying covariates
+- Inference is less clear
+- Likely estimating some variance-weighted ATT...not clear what those weights are anymore
+- Seemingly stronger parallel trends assumptions for each cohort
+
+
+---
+class: inverse, center, middle
+name: imputation
+
+# Imputation estimators
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# Gardner (2021)
+
+1. Estimate group and time fixed effects via first stage regression only among non-treated units
+2. Predict outcome for all observations and residualize
+3. Run standard event study specification on residualized outcome variable
+
+Note: Estimate with GMM to account for first-stage prediction
+
+
+---
+# Gardner (2021) in Practice
+
+.pull-left[
+**Stata**<br>
+`did2s`
+]
+
+.pull-right[
+**R**<br>
+```{r, echo=TRUE, results='hide'}
+library(did2s)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% 
+  filter(!is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year>=2014), 
+         treat=post*expand_ever,
+         expand_year = ifelse(expand_ever==FALSE, 10000, expand_year),
+         time_to_treat = ifelse(expand_ever==FALSE, -1, year-expand_year),
+         time_to_treat = ifelse(time_to_treat < -3, -3, time_to_treat))
+
+mod.2s <- did2s(reg.dat, yname="perc_unins", 
+                treatment="treat", 
+                first_stage = ~ 0 | State + year,
+                second_stage = ~i(time_to_treat, ref=-1),
+                cluster_var="State")
+```
+]
+
+---
+# Gardner (2021) in Practice
+
+```{r echo=FALSE}
+iplot(mod.2s, main="2SDID Event Study", xlab="Event time")
+```
+
+
+
+---
+# Borusyak et al. (2021)
+
+- Estimate regression only for untreated observations
+- Predicted untreated outcome among the treated observations and take the difference
+- Aggregate differences to form overall weighted average effect
+
+
+---
+# Borusyak et al. in practice
+
+.pull-left[
+**Stata**<br>
+`did_imputation`
+]
+
+.pull-right[
+**R**<br>
+```{r, echo=TRUE, results='hide'}
+library(didimputation)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% 
+  filter(!is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year>=2014), 
+         treat=post*expand_ever,
+         expand_year = ifelse(expand_ever==FALSE, 0, expand_year))
+
+mod.bea <- did_imputation(reg.dat, yname="perc_unins", 
+                gname="expand_year",
+                tname="year",
+                idname="State",
+                first_stage = ~ 0 | State + year,
+                cluster_var="State",
+                horizon=TRUE,
+                pretrends=-3:-1)
+```
+
+]
+
+
+---
+# Borusyak et al. in practice
+
+```{r echo=FALSE}
+coef.bea <- mod.bea %>%
+    select(rel_year = term, estimate, std.error) %>%
+    mutate(
+        ci_lower = estimate - 1.96 * std.error,
+        ci_upper = estimate + 1.96 * std.error,
+        group = "Borusyak et al Imputation",
+        rel_year = as.numeric(rel_year)
+    )
+
+ggplot(coef.bea) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    geom_vline(xintercept = -0.5, linetype = "dashed") +
+    geom_linerange(mapping = aes(x = rel_year, ymin = ci_lower, ymax = ci_upper), color = "grey30") +
+    geom_point(mapping = aes(x = rel_year, y = estimate, color = group), size = 2) +
+    scale_x_continuous(breaks = -3:5, minor_breaks = NULL) +
+    scale_y_continuous(minor_breaks = NULL) +
+    labs(x = "Relative Time", y = "Estimate", color = NULL, title = NULL) +
+  theme_bw() + theme(legend.position="none")
+```
+
+
+---
+class: inverse, center, middle
+name: together
+
+# Putting things together
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# Seems like lots of "solutions"
+
+- Callaway and Sant'Anna (2020)
+- Sun and Abraham (2020)
+- de Chaisemartin and D'Haultfoeuille (2020)
+- Cengiz et al (2019)
+- Gardner (2021) and Borusyak et al. (2021)
+
+
+--
+Goodman-Bacon (2021) explores the problems but doesn't really propose a solution (still very important work though!)
+
+---
+# Comparison
+
+```{r include=FALSE}
+library(tidyverse)
+library(modelsummary)
+library(fixest)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% 
+  filter(!is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year>=2014), 
+         treat=post*expand_ever,
+         time_to_treat = ifelse(expand_ever==FALSE, 0, year-expand_year),
+         time_to_treat = ifelse(time_to_treat < -3, -3, time_to_treat))
+
+mod.twfe <- feols(perc_unins~i(time_to_treat, expand_ever, ref=-1) | State + year,
+                  cluster=~State,
+                  data=reg.dat)
+```
+
+
+```{r echo=FALSE}
+coef.twfe <- tidy(mod.twfe) %>%
+  mutate(term=str_replace(term,"time_to_treat::",""),
+         term=str_replace(term,":expand_ever","")) %>%
+  rename(rel_year=term) %>%
+  select(rel_year, estimate, std.error) %>%
+  bind_rows(tibble(rel_year="-1", estimate=0, std.error=0)) %>%  
+  mutate(
+    ci_lower = estimate - 1.96 * std.error,
+    ci_upper = estimate + 1.96 * std.error,
+    group = "TWFE",
+    rel_year = as.numeric(rel_year)
+  ) %>%
+  filter(rel_year>=-3, rel_year<=5)
+
+coef.2s <- tidy(mod.2s) %>%
+  mutate(term=str_replace(term,"time_to_treat::","")) %>%
+  rename(rel_year=term) %>%
+  select(rel_year, estimate, std.error) %>%
+  bind_rows(tibble(rel_year="-1", estimate=0, std.error=0)) %>%  
+  mutate(
+    ci_lower = estimate - 1.96 * std.error,
+    ci_upper = estimate + 1.96 * std.error,
+    group = "Gardner 2SDiD",
+    rel_year = as.numeric(rel_year)
+  )
+
+coef.sa <- tidy(mod.sa) %>%
+  mutate(term=str_replace(term,"time_to_treat::","")) %>%
+  rename(rel_year=term) %>%
+  select(rel_year, estimate, std.error) %>%
+  bind_rows(tibble(rel_year="-1", estimate=0, std.error=0)) %>%    
+  mutate(
+    ci_lower = estimate - 1.96 * std.error,
+    ci_upper = estimate + 1.96 * std.error,
+    group = "Sun and Abraham",
+    rel_year = as.numeric(rel_year)
+  ) %>%
+  filter(rel_year>=-3, rel_year<=5)
+
+
+coef.cs <- tidy(mod.cs.event) %>%
+  select(rel_year=event.time, estimate, ci_lower=conf.low, ci_upper=conf.high) %>%
+  mutate(rel_year=as.numeric(rel_year),
+         group = "Callaway and Sant'Anna") %>%
+  filter(rel_year>=-3, rel_year<=5)
+coef.cs <- as_tibble(coef.cs)
+
+coef.all <- bind_rows(coef.twfe, coef.cs, coef.sa, coef.2s, coef.bea) %>%
+  select(rel_year, estimate, ci_lower, ci_upper, group)
+
+ggplot(coef.all, aes(x=rel_year, y=estimate)) + 
+  geom_point(aes(color=group), size = 2, position=position_dodge(width=0.7))  +
+  geom_linerange(aes(ymin = ci_lower, ymax = ci_upper), position=position_dodge2(width=0.7)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = -0.5, linetype = "dashed") +
+  theme(legend.position="bottom") +
+  guides(color=guide_legend(ncol=2, title=NULL)) +
+  scale_x_continuous(breaks = -3:5, minor_breaks = NULL) +
+  scale_y_continuous(minor_breaks = NULL) +
+  labs(x = "Relative Time", y = "Estimate", color = NULL, title = NULL)
+
+```
+
+
+---
+# Comparison
+
+.pull-left[
+**Similarities**<br>
+- Focus on clean treatment/control
+- Focus on event study framework (not a single overall effect)
+- Impose some form of parallel trends assumption
+]
+
+.pull-right[
+**Differences**<br>
+- Is there a "never treated" group?
+- Can treatment turn on and off?
+- How to include covariates?
+- How to do inference?
+]
+
+
+---
+# General advice
+
+1. Do you have staggered treatment adoption? If so, will need to consider something beyond TWFE event study (even if it doesn't change results)
+2. Do you need time-varying covariates? If so, consider Sun and Abraham or stacked regression (2SDD and imputation can only use pre-treatment covariates)
+3. Is treatment "strict"? If not, CH is only option right now
+4. Does treatment turn on and off again? If so, CH or perhaps focus on "clean" treatment adoptions
+5. Inference? Stacked regression is harder here.
+
+
+---
+# Other topics
+
+- Can you test for parallel pre-trends?
+- Recent work says such tests are underpowered
+- Consider potential violations of parallel trends and assess results
+    - Intuitively "easy" to do in manual $(g,t)$ or imputation setting, harder in pure regression setting

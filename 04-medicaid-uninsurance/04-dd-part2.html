@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Module 4: Difference-in-Differences and Effects of Medicaid Expansion</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Ian McCarthy | Emory University" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#E68080"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+    <link rel="stylesheet" href="cols.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Module 4: Difference-in-Differences and Effects of Medicaid Expansion
+]
+.subtitle[
+## Part 4: Even More Difference-in-Differences
+]
+.author[
+### Ian McCarthy | Emory University
+]
+.date[
+### Econ 470 &amp; HLTH 470
+]
+
+---
+
+class: inverse, center, middle
+
+&lt;!-- Adjust some CSS code for font size and maintain R code font size --&gt;
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+&lt;/style&gt;
+
+
+&lt;!-- Set R options for how code chunks are displayed and load packages --&gt;
+
+
+
+
+# Problem with TWFE
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+---
+# Problem in an Equation
+
+Consider standard TWFE specification with a single treatment coefficient, `$$y_{it} = \alpha + \delta D_{it} + \gamma_{i} + \gamma_{t} + \varepsilon_{it}.$$` We can decompose `\(\hat{\delta}\)` into three things:
+
+`$$\hat{\delta}_{twfe} = \text{VW} ATT + \text{VW} PT - \Delta ATT$$`
+
+1. A variance-weighted ATT
+2. Violation of parallel trends
+3. Heterogeneous effects over time
+
+
+---
+# Problem with words
+
+- Best case: Variance-weighted ATT
+- Differential timing **alone** can introduce bias because already treated act as controls for later treated groups (when seeking single regression coefficient)
+- Heterogeneity and differential timing introduces "contamination" via negative weights assigned to some underlying 2x2 DDs
+
+---
+# Solution
+
+Only consider "clean" comparisons:
+
+- Separate event study for each treatment group vs never-treated or not-yet-treated
+- Callaway and Sant'Anna (2020)
+- Sun and Abraham (2020)
+- de Chaisemartin and D'Haultfoeuille (2020)
+- Stacking regression: Cengiz et al. (2019)
+- Imputation: Gardner (2021), and Borusyak et al. (2021)
+
+
+---
+# Changing mindset for estimation
+
+1. Define target parameter (e.g., ATT)...this is pretty new as a starting point
+2. Identification
+3. Estimation
+4. Aggregation
+5. Inference
+
+---
+class: inverse, center, middle
+
+# An aside on covariates and DD
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Incorporating covariates
+
+- "Easy" to do in regression setting, but risks of using outcomes as controls
+- Two general ways:
+    1. Outcome regression (imputation-based)
+    2. Propensity score
+
+---
+# Outcome regression (Heckman et al 1997)
+
+`$$\small \hat{\delta}^{reg} = E[Y_{t=1}|D=1] - \left[ E[Y_{t=0}|D=1] + \frac{1}{n^{T}} \sum_{i \in N_{d=1}} \left(\hat{\mu}_{d=0, t=1}(X_{i}) - \hat{\mu}_{d=0, t=0}(X_{i})\right) \right],$$`
+
+where `\(\hat{\mu}_{d,t}\)` is the prediction from a regression among the untreated group using baseline covariates.
+
+- Heckman forms prediction as regression of `\(\Delta Y\)` on `\(X_{i}\)` among untreated group, although could also consider separate regressions on levels
+- Conceptually...take observed value among treatment group in post-period, subtract pre-period value and the predicted trend
+
+---
+# IPW (Abadie, 2005)
+
+`$$\hat{\delta}^{ipw} = E \left[\frac{D - \hat{p}(D=1|X)}{1-\hat{p}(D=1|X)} \frac{Y_{t=1} - Y_{t=0}}{P(D=1)} \right]$$`
+- `\(Y_{t=1}\)` is the observed outcome at time `\(t=1\)`, and similarly for `\(Y_{t=0}\)`
+- `\(\hat{p}\)` denotes the estimated propensity score from regression of `\(D\)` on `\(X\)` in pre-period
+- Conceptually...upweight change among treated that look a lot like the control group, downweight change among treated that look different than controls
+
+
+---
+# DR (Sant'Anna and Zhou)
+
+`$$\scriptsize \hat{\delta}^{dr} = E \left[ \left(\frac{D}{P(D=1)} - \frac{\frac{\hat{p}(X)(1-D)}{1-\hat{p}(X)}}{E\left[\frac{\hat{p}(X)(1-D)}{1-\hat{p}(X)} \right]} \right) \left(E[Y_{t=1}|D=1] - E[Y_{t=0}|D=1] - \Delta \hat{\mu}_{0}(X)\right) \right]$$`
+- Notice how this combines Heckman's outcome regression in the second part and Abadie's IPW in the first part
+
+---
+class: inverse, center, middle
+name: newdd
+
+# The "New" DD
+
+---
+# The New DD
+
+I'll organize this into three types of estimators:
+
+1. GT
+2. Stacked
+3. Imputation
+
+
+---
+class: inverse, center, middle
+name: cs
+
+# GT1: Callaway and Sant'Anna
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# CS Estimator (Conceptually)
+
+- "Manually" estimate group-specific treatment effects for each period
+- Each estimate is propensity-score weighted
+- Aggregate the treatment effect estimates (by time, group, or both)
+
+---
+# CS Estimator (More Formally)
+
+Group-specific treatment effects:
+
+`$$ATT(g,t) = E[Y_{1,t} - Y_{0,t} | G_{g}=1],$$`
+where `\(G\)` denotes all feasible groups or cohorts (e.g., `\(g=1\)` could mean states expanding in 2014, `\(g=2\)` denotes states expanding in 2015, etc.)
+
+
+---
+# CS Estimator (More Formally)
+
+With this `\((g,t)\)` notation, CS show:
+
+`$$\scriptsize ATT(g,t; \tau)^{DR} = E \left[ \left(\frac{G_{g}}{P(G_{g}=1)} - \frac{\frac{\hat{p}_{g}(X)C}{1-\hat{p}_{g}(X)}}{E\left[\frac{\hat{p}_{g}(X)C}{1-\hat{p}_{g}(X)} \right]} \right) \left(E[Y_{t}|G_{g}=1] - E[Y_{g-\tau-1}|G_{g}=1] - \Delta \hat{\mu}_{g,t,\tau}(X)\right) \right]$$`
+- `\(\tau\)` denotes time from treatment, such that `\(Y_{g - \tau - 1}\)` denotes the outcome for some reference time period, `\(t=g - \tau -1\)`
+- `\(\Delta \hat{\mu}\)` captures the predicted change from an outcome regression
+- `\(\hat{p}_{g}\)` denotes the predicted probability of being in the treatment cohort `\(g\)`
+
+
+---
+# CS Estimator (More Formally)
+
+- CS show a similar version of their estimator using a "not-yet-treated" control group rather than a never-treated.
+- Different versions include...
+    - "regression" based: drop the propensity score part
+    - "IPW": drop `\(\Delta \hat{\mu}\)`
+- Only time-invariant covariates allowed
+
+---
+# CS Estimator (More Formally)
+
+Finally, aggregate all of the `\((g,t)\)` treatment effects:
+
+`$$\hat{\delta} = \sum_{g \in \mathcal{G}} \sum_{t=2}^{\mathcal{T}} w(g,t) \times ATT(g,t)$$`
+
+---
+# CS Estimator (in Practice)
+
+.pull-left[
+**Stata**&lt;br&gt;
+
+```stata
+ssc install csdid
+ssc install event_plot
+ssc install drdid
+
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+egen stategroup=group(state)
+drop if expand_ever=="NA"
+replace expand_year="0" if expand_year=="NA"
+destring expand_year, replace
+
+csdid perc_unins, ivar(stategroup) time(year) gvar(expand_year) notyet
+estat event, estore(cs)
+event_plot cs, default_look graph_opt(xtitle("Periods since the event") ytitle("Average causal effect") xlabel(-6(1)4) title("Callaway and Sant'Anna (2020)")) stub_lag(T+#) stub_lead(T-#) together
+```
+]
+
+
+.pull-right[
+**R**&lt;br&gt;
+
+```r
+library(tidyverse)
+library(did)
+library(DRDID)
+mcaid.data &lt;- read_tsv("../data/acs_medicaid.txt")
+reg.dat &lt;- mcaid.data %&gt;% 
+  filter(!is.na(expand_ever)) %&gt;%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year&gt;=2014), 
+         treat=post*expand_ever,
+         expand_year=ifelse(is.na(expand_year),0,expand_year)) %&gt;%
+  filter(!is.na(perc_unins)) %&gt;%
+  group_by(State) %&gt;%
+  mutate(stategroup=cur_group_id()) %&gt;% ungroup()
+
+mod.cs &lt;- att_gt(yname="perc_unins", tname="year", idname="stategroup",
+                 gname="expand_year",
+                 data=reg.dat, panel=TRUE, est_method="dr",
+                 allow_unbalanced_panel=TRUE)
+mod.cs.event &lt;- aggte(mod.cs, type="dynamic")
+```
+]
+
+---
+# CS in Practice
+
+&lt;img src="04-dd-part2_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: inverse, center, middle
+name: sa
+
+# GT2: Sun and Abraham
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Sun and Abraham
+
+- Standard event study problems:
+    - coefficient estimates are potentially biased due to treatment/control group construction
+    - i.e., "contamination" of individual `\(\delta_{\tau}\)` from other leads/lags
+- Solution: Estimate fully interacted model
+
+
+--
+`$$y_{it} = \gamma_{i} + \gamma_{t} + \sum_{g} \sum_{\tau \neq -1} \delta_{g \tau} \times \text{1}(i \in C_{g}) \times D_{it}^{\tau} + \beta x_{it} + \epsilon_{it}$$`
+
+---
+# Sun and Abraham
+
+`$$y_{it} = \gamma_{i} + \gamma_{t} + \sum_{g} \sum_{\tau \neq -1} \delta_{g \tau} \times \text{1}(i \in C_{g}) \times D_{it}^{\tau} + \beta x_{it} + \epsilon_{it}$$`
+
+--
+- `\(g\)` denotes a group and `\(C_{g}\)` the set of individuals in group `\(g\)`
+- `\(\tau\)` denotes time periods
+- `\(D_{it}^{\tau}\)` denotes a relative time indicator
+
+
+---
+count: false
+
+# Sun and Abraham
+
+`$$y_{it} = \gamma_{i} + \gamma_{t} + \sum_{g} \sum_{\tau \neq -1} \delta_{g \tau} \times \text{1}(i \in C_{g}) \times D_{it}^{\tau} + \beta x_{it} + \epsilon_{it}$$`
+
+
+--
+- Intuition: Standard regression with different event study specifications for each treatment group
+- Aggregate `\(\delta_{g\tau}\)` for standard event study coefficients and overall ATT
+
+
+
+---
+# Sun and Abraham in Practice
+
+.pull-left[
+**Stata**&lt;br&gt;
+
+```stata
+ssc install eventstudyinteract
+ssc install avar
+ssc install event_plot
+
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+drop if expand_ever=="NA"
+egen stategroup=group(state)
+replace expand_year="." if expand_year=="NA"
+destring expand_year, replace
+gen event_time=year-expand_year
+gen nevertreated=(event_time==.)
+
+forvalues l = 0/4 {
+	gen L`l'event = (event_time==`l')
+}
+forvalues l = 1/2 {
+	gen F`l'event = (event_time==-`l')
+}
+gen F3event=(event_time&lt;=-3)
+eventstudyinteract perc_unins F3event F2event L0event L1event L2event L3event L4event, vce(cluster stategroup) absorb(stategroup year) cohort(expand_year) control_cohort(nevertreated)
+
+event_plot e(b_iw)#e(V_iw), default_look graph_opt(xtitle("Periods since the event") ytitle("Average causal effect") xlabel(-3(1)4)	title("Sun and Abraham (2020)")) stub_lag(L#event) stub_lead(F#event) plottype(scatter) ciplottype(rcap) together
+```
+]
+
+
+.pull-right[
+**R**&lt;br&gt;
+
+```r
+library(tidyverse)
+library(modelsummary)
+library(fixest)
+mcaid.data &lt;- read_tsv("../data/acs_medicaid.txt")
+reg.dat &lt;- mcaid.data %&gt;% 
+  filter(!is.na(expand_ever)) %&gt;%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year&gt;=2014), 
+         treat=post*expand_ever,
+         expand_year = ifelse(expand_ever==FALSE, 10000, expand_year),
+         time_to_treat = ifelse(expand_ever==FALSE, -1, year-expand_year),
+         time_to_treat = ifelse(time_to_treat &lt; -4, -4, time_to_treat))
+
+mod.sa &lt;- feols(perc_unins~sunab(expand_year, time_to_treat) | State + year,
+                  cluster=~State,
+                  data=reg.dat)
+```
+]
+
+---
+# Sun and Abraham in Practice
+
+&lt;img src="04-dd-part2_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" /&gt;
+
+
+
+
+---
+class: inverse, center, middle
+name: ch
+
+# GT3: de Chaisemartin and D'Haultfoeuille (CH)
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# CH
+
+- More general than other approaches
+- Considers "fuzzy" treatment (i.e., non-discrete treatment)
+- Considers fixed effects and first-differencing
+- Allows treatment to turn on and off (not allowed in CS or SA)
+
+
+--
+New paper from Callaway, Goodman-Bacon, and Sant'Anna also looks at DD with continuous treatment
+
+---
+# CH Approach
+
+- Essentially a series of 2x2 comparisons
+- Aggregates up to overall effects
+
+
+---
+# CH in Practice
+
+.pull-left[
+**Stata**&lt;br&gt;
+
+```stata
+ssc install did_multiplegt
+ssc install event_plot
+
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+drop if expand_ever=="NA"
+egen stategroup=group(state)
+replace expand_year="." if expand_year=="NA"
+destring expand_year, replace
+gen event_time=year-expand_year
+gen nevertreated=(event_time==.)
+gen treat=(event_time&gt;=0 &amp; event_time!=.)
+
+did_multiplegt perc_unins stategroup year treat, robust_dynamic dynamic(4) placebo(3) breps(100) cluster(stategroup) 
+event_plot e(estimates)#e(variances), default_look graph_opt(xtitle("Periods since the event") ytitle("Average causal effect") ///
+title("de Chaisemartin and D'Haultfoeuille (2020)") xlabel(-3(1)4)) stub_lag(Effect_#) stub_lead(Placebo_#) together
+```
+]
+
+
+.pull-right[
+**R**(not the same as in **Stata**)&lt;br&gt;
+
+```r
+library(DIDmultiplegt)
+mcaid.data &lt;- read_tsv("../data/acs_medicaid.txt")
+reg.dat &lt;- mcaid.data %&gt;% 
+  filter(!is.na(expand_ever)) %&gt;%
+  mutate(perc_unins=uninsured/adult_pop,
+         treat=case_when(
+           expand_ever==FALSE ~ 0,
+           expand_ever==TRUE &amp; expand_year&lt;year ~ 0,
+           expand_ever==TRUE &amp; expand_year&gt;=year ~ 1))
+
+mod.ch &lt;- did_multiplegt(df=reg.dat, Y="perc_unins", G="State", T="year", D="treat",
+                         placebo=4, dynamic=5, brep=50, cluster='State', covariance=TRUE, 
+                         parallel=TRUE, average_effect="simple")
+```
+
+&lt;img src="04-dd-part2_files/figure-html/unnamed-chunk-8-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+---
+# CH in Practice
+
+&lt;img src="04-dd-part2_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# CH in practice
+
+Some barriers to this estimator in practice (at least, as implemented in `R` right now)
+- Relatively slow
+- Not user friendly
+- Odd results
+
+
+
+---
+class: inverse, center, middle
+name: stacked
+
+# Stacked regression
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Cengiz et al. (2019)
+
+- "Stacked" event studies
+- Estimate event study for every treatment group, using never-treated as controls
+- Aggregate to overall average effects
+
+---
+# Cengiz et al. (2019)
+
+1. Define event window, `\(t\in [\kappa_{a}, \kappa_{b}]\)` (e.g., 3 pre-periods and 5 post-periods, `\(\kappa_{a}=3\)` and `\(\kappa_{b}=5\)`)
+2. Split the data into `\(g=1,...,G\)` different "groups", as defined by treatment cohort, each with adoption date denoted by `\(\omega_{g}\)`
+    - observations outside of the `\([\omega_{g} - \kappa_{a}, \omega_{g} + \kappa_{b}]\)` interval are dropped
+3. Append (i.e., stack) each `\(g\)`th dataset
+4. Run stacked event study allowing for different set of event study coefficients and fixed effects for every group `\(g\)`
+
+`$$y_{itg} = \sum_{\tau=-\kappa_{a}}^{\kappa_{b}} \delta_{\tau} \times D_{ig} \times 1(t-\omega_{g} = \tau) + \gamma_{ig} + \gamma_{\tau g} + \varepsilon_{itg}$$`
+
+---
+# Cengiz et al. (2019)
+
+- Intuitively: run event study on every cohort, `\(g\)`
+- Control units (never treated or very late treated) will be duplicated over cohorts
+- Need to cluster at the unit or unit/cohort level (probably unit level otherwise not accounting for duplication)
+- **Alternative:** Among controls included in multiple cohorts, randomly assign them to one cohort
+
+---
+# Quick comparison
+
+- Allows time-varying covariates
+- Inference is less clear
+- Likely estimating some variance-weighted ATT...not clear what those weights are anymore
+- Seemingly stronger parallel trends assumptions for each cohort
+
+
+---
+class: inverse, center, middle
+name: imputation
+
+# Imputation estimators
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Gardner (2021)
+
+1. Estimate group and time fixed effects via first stage regression only among non-treated units
+2. Predict outcome for all observations and residualize
+3. Run standard event study specification on residualized outcome variable
+
+Note: Estimate with GMM to account for first-stage prediction
+
+
+---
+# Gardner (2021) in Practice
+
+.pull-left[
+**Stata**&lt;br&gt;
+`did2s`
+]
+
+.pull-right[
+**R**&lt;br&gt;
+
+```r
+library(did2s)
+mcaid.data &lt;- read_tsv("../data/acs_medicaid.txt")
+reg.dat &lt;- mcaid.data %&gt;% 
+  filter(!is.na(expand_ever)) %&gt;%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year&gt;=2014), 
+         treat=post*expand_ever,
+         expand_year = ifelse(expand_ever==FALSE, 10000, expand_year),
+         time_to_treat = ifelse(expand_ever==FALSE, -1, year-expand_year),
+         time_to_treat = ifelse(time_to_treat &lt; -3, -3, time_to_treat))
+
+mod.2s &lt;- did2s(reg.dat, yname="perc_unins", 
+                treatment="treat", 
+                first_stage = ~ 0 | State + year,
+                second_stage = ~i(time_to_treat, ref=-1),
+                cluster_var="State")
+```
+]
+
+---
+# Gardner (2021) in Practice
+
+&lt;img src="04-dd-part2_files/figure-html/unnamed-chunk-11-1.png" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+# Borusyak et al. (2021)
+
+- Estimate regression only for untreated observations
+- Predicted untreated outcome among the treated observations and take the difference
+- Aggregate differences to form overall weighted average effect
+
+
+---
+# Borusyak et al. in practice
+
+.pull-left[
+**Stata**&lt;br&gt;
+`did_imputation`
+]
+
+.pull-right[
+**R**&lt;br&gt;
+
+```r
+library(didimputation)
+mcaid.data &lt;- read_tsv("../data/acs_medicaid.txt")
+reg.dat &lt;- mcaid.data %&gt;% 
+  filter(!is.na(expand_ever)) %&gt;%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year&gt;=2014), 
+         treat=post*expand_ever,
+         expand_year = ifelse(expand_ever==FALSE, 0, expand_year))
+
+mod.bea &lt;- did_imputation(reg.dat, yname="perc_unins", 
+                gname="expand_year",
+                tname="year",
+                idname="State",
+                first_stage = ~ 0 | State + year,
+                cluster_var="State",
+                horizon=TRUE,
+                pretrends=-3:-1)
+```
+
+]
+
+
+---
+# Borusyak et al. in practice
+
+&lt;img src="04-dd-part2_files/figure-html/unnamed-chunk-13-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: inverse, center, middle
+name: together
+
+# Putting things together
+
+&lt;html&gt;&lt;div style='float:left'&gt;&lt;/div&gt;&lt;hr color='#EB811B' size=1px width=1055px&gt;&lt;/html&gt;
+
+
+---
+# Seems like lots of "solutions"
+
+- Callaway and Sant'Anna (2020)
+- Sun and Abraham (2020)
+- de Chaisemartin and D'Haultfoeuille (2020)
+- Cengiz et al (2019)
+- Gardner (2021) and Borusyak et al. (2021)
+
+
+--
+Goodman-Bacon (2021) explores the problems but doesn't really propose a solution (still very important work though!)
+
+---
+# Comparison
+
+
+
+
+&lt;img src="04-dd-part2_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Comparison
+
+.pull-left[
+**Similarities**&lt;br&gt;
+- Focus on clean treatment/control
+- Focus on event study framework (not a single overall effect)
+- Impose some form of parallel trends assumption
+]
+
+.pull-right[
+**Differences**&lt;br&gt;
+- Is there a "never treated" group?
+- Can treatment turn on and off?
+- How to include covariates?
+- How to do inference?
+]
+
+
+---
+# General advice
+
+1. Do you have staggered treatment adoption? If so, will need to consider something beyond TWFE event study (even if it doesn't change results)
+2. Do you need time-varying covariates? If so, consider Sun and Abraham or stacked regression (2SDD and imputation can only use pre-treatment covariates)
+3. Is treatment "strict"? If not, CH is only option right now
+4. Does treatment turn on and off again? If so, CH or perhaps focus on "clean" treatment adoptions
+5. Inference? Stacked regression is harder here.
+
+
+---
+# Other topics
+
+- Can you test for parallel pre-trends?
+- Recent work says such tests are underpowered
+- Consider potential violations of parallel trends and assess results
+    - Intuitively "easy" to do in manual `\((g,t)\)` or imputation setting, harder in pure regression setting
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script src="cols_macro.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,683 @@
+---
+title: "Module 4: Difference-in-Differences and Effects of Medicaid Expansion"
+subtitle: "Part 3: Understanding Difference-in-Differences"
+author: Ian McCarthy | Emory University
+date: Econ 470 & HLTH 470
+header-includes: 
+  - \usepackage{graphicx}
+  - \usepackage{amsmath}
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, custom.css, cols.css] 
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      beforeInit: [macros.js, cols_macro.js]
+knit: pagedown::chrome_print      
+---
+class: inverse, center, middle
+
+
+<!-- Adjust some CSS code for font size and maintain R code font size -->
+<style type="text/css">
+.remark-slide-content {
+    font-size: 30px;
+    padding: 1em 2em 1em 2em;    
+}
+.remark-code {
+  font-size: 15px;
+}
+.remark-inline-code { 
+    font-size: 20px;
+}
+</style>
+
+
+<!-- Set R options for how code chunks are displayed and load packages -->
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(knitr)
+knitr::opts_chunk$set(
+  fig.align="center",  
+  fig.height=3, #fig.width=6,
+  # out.width="748px", #out.length="520.75px",
+  dpi=300, #fig.path='Figs/',
+  cache=T,# echo=F, warning=F, message=F
+  warning = FALSE, 
+  message = FALSE, 
+  cache.lazy = FALSE,
+  error=TRUE
+  )
+
+knitr::opts_hooks$set(fig.callout = function(options) {
+  if(options$fig.callout) {
+    options$echo = FALSE
+  }
+  options
+})
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, readr, readxl, hrbrthemes,
+               scales, plotly, gganimate, cobalt, stargazer, haven, ggthemes,
+               gifski, magick, fixest, modelsummary, here, xaringanExtra, webshot)
+set.seed(1234)
+```
+
+```{r xaringan-scribble, echo=FALSE}
+xaringanExtra::use_scribble(rgb(0.9, 0.5, 0.5))
+```
+
+# The Idea of DD
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+---
+# Setup
+Want to estimate $E[Y_{1}(1)- Y_{0}(1) | D=1]$
+
+![:col_header , Post-period, Pre-period]
+![:col_row Treated, \(E(Y_{1}(1)|D=1)\), \(E(Y_{0}(0)|D=1)\)]
+![:col_row Control, \(E(Y_{0}(1)|D=0)\), \(E(Y_{0}(0)|D=0)\)]
+
+<br>
+Problem: We don't see $E[Y_{0}(1)|D=1]$
+
+
+---
+# Setup
+Want to estimate $E[Y_{1}(1)- Y_{0}(1) | D=1]$
+
+![:col_header , Post-period, Pre-period]
+![:col_row Treated, \(E(Y_{1}(1)|D=1)\), \(E(Y_{0}(0)|D=1)\)]
+![:col_row Control, \(E(Y_{0}(1)|D=0)\), \(E(Y_{0}(0)|D=0)\)]
+
+<br>
+**Strategy 1:** Estimate $E[Y_{0}(1)|D=1]$ using $E[Y_{0}(0)|D=1]$ (before treatment outcome used to estimate post-treatment)
+
+
+---
+# Setup
+Want to estimate $E[Y_{1}(1)- Y_{0}(1) | D=1]$
+
+![:col_header , Post-period, Pre-period]
+![:col_row Treated, \(E(Y_{1}(1)|D=1)\), \(E(Y_{0}(0)|D=1)\)]
+![:col_row Control, \(E(Y_{0}(1)|D=0)\), \(E(Y_{0}(0)|D=0)\)]
+
+<br>
+**Strategy 2:** Estimate $E[Y_{0}(1)|D=1]$ using $E[Y_{0}(1)|D=0]$ (control group used to predict outcome for treatment)
+
+
+---
+# Setup
+Want to estimate $E[Y_{1}(1)- Y_{0}(1) | D=1]$
+
+![:col_header , Post-period, Pre-period]
+![:col_row Treated, \(E(Y_{1}(1)|D=1)\), \(E(Y_{0}(0)|D=1)\)]
+![:col_row Control, \(E(Y_{0}(1)|D=0)\), \(E(Y_{0}(0)|D=0)\)]
+
+<br>
+**Strategy 3:** DD estimate...
+
+Estimate $E[Y_{1}(1)|D=1] - E[Y_{0}(1)|D=1]$ using $E[Y_{0}(1)|D=0] - E[Y_{0}(0)|D=0]$ (pre-post difference in control group used to predict difference for treatment group)
+
+---
+# Graphically
+
+```{r echo=FALSE, out.width="700px"}
+knitr::include_graphics("pics/standard-dd.png")
+```
+
+
+---
+# Animations
+
+.center[
+  ![](pics/dd_animate.gif)
+]
+
+---
+class: inverse, center, middle
+name: estimation
+
+# Average Treatment Effects with DD
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# Estimation
+Key identifying assumption is that of *parallel trends*
+
+
+--
+$$E[Y_{0}(1) - Y_{0}(0)|D=1] = E[Y_{0}(1) - Y_{0}(0)|D=0]$$
+
+---
+# Estimation
+Sample means:<br>
+$$\begin{align}
+E[Y_{1}(1) - Y_{0}(1)|D=1] &=& \left( E[Y(1)|D=1] - E[Y(1)|D=0] \right) \\
+ & & - \left( E[Y(0)|D=1] - E[Y(0)|D=0]\right)
+\end{align}$$
+
+
+---
+# Estimation
+Regression:<br>
+$y_{it} = \alpha + \beta D_{i} + \lambda \times Post_{t} + \delta \times D_{i} \times Post_{t} + \varepsilon_{it}$
+
+<br>
+![:col_header , After, Before, After - Before]
+![:col_row Treated, \(\alpha + \beta + \lambda + \delta\), \(\alpha + \beta\), \(\lambda + \delta\)]
+![:col_row Control, \(\alpha + \lambda\), \(\alpha\), \(\lambda\)]
+![:col_row Treated - Control, \(\beta + \delta\), \(\beta\), \(\delta\)]
+
+
+---
+# Simulated data
+```{r}
+N <- 5000
+dd.dat <- tibble(
+  d = (runif(N, 0, 1)>0.5),
+  time_pre = "pre",
+  time_post = "post"
+)
+
+dd.dat <- pivot_longer(dd.dat, c("time_pre","time_post"), values_to="time") %>%
+  select(d, time) %>%
+  mutate(t=(time=="post"),
+         y.out=1.5+3*d + 1.5*t + 6*d*t + rnorm(N*2,0,1))
+```
+
+---
+# Mean differences
+```{r}
+dd.means <- dd.dat %>% group_by(d, t) %>% summarize(mean_y = mean(y.out))
+knitr::kable(dd.means, col.names=c("Treated","Post","Mean"), format="html")
+```
+
+---
+# Mean differences
+In this example:
+- $E[Y(1)|D=1] - E[Y(1)|D=0]$ is `r dd.means[4,3]-dd.means[2,3]`
+- $E[Y(0)|D=1] - E[Y(0)|D=0]$ is `r dd.means[3,3]-dd.means[1,3]`
+
+<br>
+<br>
+So the ATT is `r dd.means[4,3]-dd.means[2,3] - (dd.means[3,3]-dd.means[1,3])`
+
+
+
+---
+# Regression estimator
+```{r}
+library(modelsummary)
+dd.est <- lm(y.out ~ d + t + d*t, data=dd.dat)
+modelsummary(dd.est, gof_map=NA, coef_omit='Intercept')
+```
+
+
+---
+class: inverse, center, middle
+name: handson
+
+# Seeing things in action
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+
+---
+# Application
+- Try out some real data on Medicaid expansion following the ACA
+- **Question:** Did Medicaid expansion reduce uninsurance?
+
+---
+# Step 1: Look at the data
+
+.pull-left[
+**Stata**<br>
+```{stata, eval=FALSE}
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+keep if expand_year=="2014" | expand_year=="NA"
+drop if expand_ever=="NA"
+collapse (mean) perc_unins, by(year expand_ever)
+graph twoway (connected perc_unins year if expand_ever=="FALSE", color(black) lpattern(solid)) ///
+  (connected perc_unins year if expand_ever=="TRUE", color(black) lpattern(dash)), ///
+  xline(2013.5) ///
+	ytitle("Fraction Uninsured") xtitle("Year") legend(off) text(0.15 2017 "Non-expansion", place(e)) text(0.08 2017 "Expansion", place(e))
+```
+]
+
+.pull-right[
+**R**<br>
+```{r, echo=TRUE, results='hide'}
+library(tidyverse)  
+# mcaid.data <- read_tsv("https://raw.githubusercontent.com/imccart/Insurance-Access/master/data/output/acs_medicaid.txt")
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+ins.plot.dat <- mcaid.data %>% filter(expand_year==2014 | is.na(expand_year), !is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop) %>%
+  group_by(expand_ever, year) %>% summarize(mean=mean(perc_unins))
+
+ins.plot <- ggplot(data=ins.plot.dat, aes(x=year,y=mean,group=expand_ever,linetype=expand_ever)) + 
+  geom_line() + geom_point() + theme_bw() +
+  geom_vline(xintercept=2013.5, color="red") +
+  geom_text(data = ins.plot.dat %>% filter(year == 2016), 
+            aes(label = c("Non-expansion","Expansion"),
+                x = year + 1,
+                y = mean)) +
+  guides(linetype="none") +
+  labs(
+    x="Year",
+    y="Fraction Uninsured",
+    title="Share of Uninsured over Time"
+  )
+```
+]
+
+---
+# Step 1: Look at the data
+
+```{r echo=FALSE}
+ins.plot
+```
+
+---
+# Step 2: Estimate effects
+Interested in $\delta$ from:
+$$y_{it} = \alpha + \beta \times Post_{t} + \lambda \times Expand_{i} + \delta \times Post_{t} \times Expand_{i} + \varepsilon_{it}$$
+
+.pull-left[
+**Stata**<br>
+```{stata, eval=FALSE}
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+keep if expand_year=="2014" | expand_year=="NA"
+drop if expand_ever=="NA"
+gen post=(year>=2014)
+gen treat=(expand_ever=="TRUE")
+gen treat_post=(expand=="TRUE")
+
+reg perc_unins treat post treat_post
+
+**also try didregress
+```
+]
+
+.pull-right[
+**R**<br>
+```{r, echo=TRUE, results='hide'}
+library(tidyverse)
+library(modelsummary)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% filter(expand_year==2014 | is.na(expand_year), !is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year>=2014), 
+         treat=post*expand_ever)
+
+dd.ins.reg <- lm(perc_unins ~ post + expand_ever + post*expand_ever, data=reg.dat)
+```
+]
+
+---
+# Step 2: Estimate effects
+
+```{r echo=FALSE}
+modelsummary(list("DD (2014)"=dd.ins.reg),
+             shape=term + statistic ~ model, 
+             gof_map=NA,
+             coef_omit='Intercept',
+             vcov=~State
+         )
+```
+
+---
+# Final DD thoughts
+
+- Key identification assumption is **parallel trends**
+- Inference: Typically want to cluster at unit-level to allow for correlation over time within units, but problems with small numbers of treated or control groups:
+    - Conley-Taber CIs
+    - Wild cluster bootstrap
+    - Randomization inference
+- "Extra" things like propensity score weighting and doubly robust estimation
+
+
+---
+class: inverse, center, middle
+name: twfe
+
+# DD and TWFE
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+---
+# What is TWFE?
+
+- Just a shorthand for a common regression specification
+- Fixed effects for each unit and each time period, $\gamma_{i}$ and $\gamma_{t}$
+- More general than 2x2 DD but same result
+
+---
+# What is TWFE?
+
+Want to estimate $\delta$:
+
+$$y_{it} = \alpha + \delta D_{it} + \gamma_{i} + \gamma_{t} + \varepsilon_{it},$$<br>
+
+where $\gamma_{i}$ and $\gamma_{t}$ denote a set of unit $i$ and time period $t$ dummy variables (or fixed effects).
+
+---
+# TWFE in Practice
+
+**2x2 DD**
+```{r, echo=TRUE, results='hide'}
+library(tidyverse)
+library(modelsummary)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% filter(expand_year==2014 | is.na(expand_year), !is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year>=2014), 
+         treat=post*expand_ever)
+m.dd <- lm(perc_unins ~ post + expand_ever + treat, data=reg.dat)
+```
+
+**TWFE**
+```{r, echo=TRUE, results='hide'}
+library(fixest)
+m.twfe <- feols(perc_unins ~ treat | State + year, data=reg.dat)
+```
+
+
+---
+# TWFE in Practice
+
+```{r, echo=FALSE}
+msummary(list("DD"=m.dd, "TWFE"=m.twfe),
+         shape=term + statistic ~ model, 
+         gof_map=NA,
+         coef_omit='Intercept',
+         vcov=~State
+         )
+```
+
+
+---
+class: inverse, center, middle
+name: event
+
+# Event Studies
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+---
+# What is an event study?
+
+Event study is poorly named:
+- In finance, even study is just an *interrupted time series*
+- In econ and other areas, we usually have a treatment/control group *and* a break in time
+
+---
+# What is an event study?
+
+- Allows for heterogeneous effects over time (maybe effects phase in over time or dissipate)
+- Visually very appealing
+- Offers easy evidence against or consistent with parallel trends assumption
+
+
+---
+# What is an event study?
+
+Estimate something akin to...
+$$y_{it} = \gamma_{i} + \gamma_{t} + \sum_{\tau = -q}^{-2}\delta_{\tau} D_{i \tau} + \sum_{\tau=0}^{m} \delta_{\tau}D_{i \tau} + \beta x_{it} + \epsilon_{it},$$
+
+where $q$ captures the number of periods before the treatment occurs and $m$ captures periods after treatment occurs.
+
+---
+# How to do an event study?
+
+1. Create all treatment/year interactions
+2. Regressions with full set of interactions and group/year FEs
+3. Plot coefficients and standard errors
+
+
+---
+# Things to address
+
+1. "Event time" vs calendar time
+2. Define baseline period
+3. Choose number of pre-treatment and post-treatment coefficients
+
+
+---
+# Event time vs calendar time
+
+Essentially two "flavors" of event studies
+
+1. Common treatment timing
+2. Differential treatment timing
+
+---
+# Define baseline period
+
+- Must choose an "excluded" time period (as in all cases of group dummy variables)
+- Common choice is $t=-1$ (period just before treatment)
+- Easy to understand with calendar time
+- For event time...manually set time to $t=-1$ for all untreated units
+
+---
+# Number of pre-treatment and post-treatment periods
+
+- On event time, sometimes very few observations for large lead or lag values
+- Medicaid expansion example: Late adopting states have fewer post-treatment periods
+- Norm is to group final lead/lag periods together
+
+
+---
+# Commont treatment timing
+
+.pull-left[
+**Stata**<br>
+```{stata, eval=FALSE}
+ssc install reghdfe
+
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+keep if expand_year=="2014" | expand_year=="NA"
+drop if expand_ever=="NA"
+gen post=(year>=2014)
+gen treat=(expand_ever=="TRUE")
+gen treat_post=(expand=="TRUE")
+
+reghdfe perc_unins treat##ib2013.year, absorb(state)
+gen coef = .
+gen se = .
+forvalues i = 2012(1)2018 {
+    replace coef = _b[1.treat#`i'.year] if year == `i'
+    replace se = _se[1.treat#`i'.year] if year == `i'
+}
+
+* Make confidence intervals
+gen ci_top = coef+1.96*se
+gen ci_bottom = coef - 1.96*se
+
+* Limit ourselves to one observation per year
+keep year coef se ci_*
+duplicates drop
+
+* Create connected scatterplot of coefficients
+* with CIs included with rcap 
+* and a line at 0 from function
+twoway (sc coef year, connect(line)) (rcap ci_top ci_bottom year) ///
+    (function y = 0, range(2012 2018)), xtitle("Year") ///
+    caption("Estimates and 95% CI from Event Study")
+```
+]
+
+
+.pull-right[
+**R**<br>
+```{r, echo=TRUE, results='hide'}
+library(tidyverse)
+library(modelsummary)
+library(fixest)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% 
+  filter(expand_year==2014 | is.na(expand_year), !is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year>=2014), 
+         treat=post*expand_ever)
+
+mod.twfe <- feols(perc_unins~i(year, expand_ever, ref=2013) | State + year,
+                  cluster=~State,
+                  data=reg.dat)
+```
+]
+
+---
+# Common treatment timing
+
+```{r echo=FALSE}
+iplot(mod.twfe, 
+      xlab = 'Time to treatment',
+      main = 'Event study')
+```
+
+
+
+---
+# Differential treatment timing
+
+- Now let's work with the full Medicaid expansion data
+- Includes late adopters
+- Requires putting observations on "event time"
+
+---
+# Differential treatment timing
+
+.pull-left[
+**Stata**<br>
+```{stata, eval=FALSE}
+ssc install reghdfe
+
+insheet using "data/acs_medicaid.txt", clear
+gen perc_unins=uninsured/adult_pop
+drop if expand_ever=="NA"
+replace expand_year="." if expand_year=="NA"
+destring expand_year, replace
+gen event_time=year-expand_year
+replace event_time=-1 if event_time==.
+
+forvalues l = 0/4 {
+	gen L`l'event = (event_time==`l')
+}
+forvalues l = 1/2 {
+	gen F`l'event = (event_time==-`l')
+}
+gen F3event=(event_time<=-3)
+
+reghdfe perc_unins F3event F2event L0event L1event L2event L3event L4event, absorb(state year) cluster(state)
+gen coef = .
+gen se = .
+forvalues i = 2(1)3 {
+    replace coef = _b[F`i'event] if F`i'event==1
+    replace se = _se[F`i'event] if F`i'event==1
+}
+forvalues i = 0(1)4 {
+    replace coef = _b[L`i'event] if L`i'event==1
+    replace se = _se[L`i'event] if L`i'event==1
+}
+replace coef = 0 if F1event==1
+replace se=0 if F1event==1
+
+* Make confidence intervals
+gen ci_top = coef+1.96*se
+gen ci_bottom = coef - 1.96*se
+
+* Limit ourselves to one observation per year
+keep if event_time>=-3 & event_time<=4
+keep event_time coef se ci_*
+duplicates drop
+
+* Create connected scatterplot of coefficients
+* with CIs included with rcap 
+* and a line at 0 from function
+sort event_time
+twoway (sc coef event_time, connect(line)) (rcap ci_top ci_bottom event_time) ///
+    (function y = 0, range(-3 4)), xtitle("Time") ///
+    caption("Estimates and 95% CI from Event Study") xlabel(-3(1)4)
+```
+]
+
+.pull-right[
+**R**<br>
+```{r, echo=TRUE, results='hide'}
+library(tidyverse)
+library(modelsummary)
+library(fixest)
+mcaid.data <- read_tsv("../data/acs_medicaid.txt")
+reg.dat <- mcaid.data %>% 
+  filter(!is.na(expand_ever)) %>%
+  mutate(perc_unins=uninsured/adult_pop,
+         post = (year>=2014), 
+         treat=post*expand_ever,
+         time_to_treat = ifelse(expand_ever==FALSE, 0, year-expand_year),
+         time_to_treat = ifelse(time_to_treat < -3, -3, time_to_treat))
+
+mod.twfe <- feols(perc_unins~i(time_to_treat, expand_ever, ref=-1) | State + year,
+                  cluster=~State,
+                  data=reg.dat)
+```
+]
+
+---
+# Differential treatment timing
+```{r, echo=FALSE}
+iplot(mod.twfe, 
+      xlab = 'Time to treatment',
+      main = 'Event study')
+```
+
+---
+class: inverse, center, middle
+name: what
+
+# What are we estimating?
+
+<html><div style='float:left'></div><hr color='#EB811B' size=1px width=1055px></html>
+
+---
+# Problems with TWFE
+
+- Recall goal of estimating ATE or ATT
+- TWFE and 2x2 DD identical with homogeneous effects and common treatment timing
+- Otherwise...TWFE is biased and inconsistent for ATT
+
+---
+# Intuition
+
+- OLS is a weighted average of all 2x2 DD groups
+- Weights are function of size of subsamples, size of treatment/control units, and timing of treatment
+- Units treated in middle of sample receive larger weights
+- Prior-treated units act as controls for late-treated units
+
+
+--
+Just the length of the panel will change the estimate!
+
+---
+# Does it really matter?
+
+- Definitely! But how much?
+- Large treatment effects for early treated units could reverse the sign of final estimate
+- Let's explore this nice Shiny app from Kyle Butts: [Bacon-Decomposition Shiny App](https://hhsievertsen.shinyapps.io/kylebutts_did_eventstudy/).
+
+
+---
+# Note on parallel trends
+
+Parallel trends violated, in general, if:
+1. Policy endogeneity (e.g., selection into treatment due to prior outcome)
+2. Compositional differences (problematic in repeated cross-sections)
